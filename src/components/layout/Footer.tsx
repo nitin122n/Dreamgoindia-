@@ -112,7 +112,6 @@ export function Footer() {
             <p className="max-w-xl text-xs leading-relaxed text-gray-500">
               © {settings.site_name || "Dream Go India"} | Tour and travel company, India | Since
               2016 – {new Date().getFullYear()} | All rights reserved.
-              Created & Managed by - Nitin Kandpal.
             </p>
             <div className="flex gap-2">
               {(
@@ -139,6 +138,21 @@ export function Footer() {
               })}
             </div>
           </div>
+        </div>
+
+        <div className="mt-5 border-t border-gray-800 pt-4 text-center">
+          <p className="flex flex-wrap items-center justify-center gap-1.5 text-xs text-gray-500">
+            Created and managed by
+            <a
+              href="https://www.instagram.com/ntn_kandpal_07/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative z-10 inline-flex items-center gap-1.5 font-semibold text-gray-300 transition hover:text-primary"
+            >
+              <InstagramIcon className="h-3.5 w-3.5" />
+              Nitin Kandpal
+            </a>
+          </p>
         </div>
       </div>
     </footer>
