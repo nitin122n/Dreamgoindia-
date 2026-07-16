@@ -1,0 +1,16 @@
+{
+  "name": "Dream Go India",
+  "short_name": "DreamGoIndia",
+  "description": "Dream Go India | Tour and travel company, India | Since 2016",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#E53935",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
