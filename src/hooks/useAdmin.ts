@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import {
   mockAdminStats,
   type NewsletterSubscriber,
@@ -300,6 +300,7 @@ export function useAdminHighlightMutations() {
           .select("id")
           .single();
         assertNoError(error);
+        if (!data?.id) throw new Error("Failed to create highlight");
         highlightId = data.id as string;
       }
 

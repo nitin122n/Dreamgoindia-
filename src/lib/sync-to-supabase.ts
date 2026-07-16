@@ -187,7 +187,7 @@ export async function syncWebsiteContentToSupabase(): Promise<{ ok: boolean; mes
         })
         .select("id")
         .single();
-      if (error) throw error;
+      if (error) return { error };
 
       const stories = (h.stories ?? [])
         .filter((s) => s.image)
@@ -200,8 +200,9 @@ export async function syncWebsiteContentToSupabase(): Promise<{ ok: boolean; mes
 
       if (stories.length) {
         const { error: storyError } = await supabase.from("travel_stories").insert(stories);
-        if (storyError) throw storyError;
+        if (storyError) return { error: storyError };
       }
+      return { error: null };
     });
   }
 
