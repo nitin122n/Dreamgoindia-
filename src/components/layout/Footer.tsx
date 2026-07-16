@@ -142,7 +142,7 @@ export function Footer() {
 
         <div className="mt-5 border-t border-gray-800 pt-4 text-center">
           <p className="flex flex-wrap items-center justify-center gap-1.5 text-xs text-gray-500">
-            Created and managed by
+            Created and Managed by
             <a
               href="https://www.instagram.com/ntn_kandpal_07/"
               target="_blank"
