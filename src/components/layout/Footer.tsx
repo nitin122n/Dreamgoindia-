@@ -112,6 +112,7 @@ export function Footer() {
             <p className="max-w-xl text-xs leading-relaxed text-gray-500">
               © {settings.site_name || "Dream Go India"} | Tour and travel company, India | Since
               2016 – {new Date().getFullYear()} | All rights reserved.
+              Created & Managed by - Nitin Kandpal .
             </p>
             <div className="flex gap-2">
               {(
