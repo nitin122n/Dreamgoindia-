@@ -101,6 +101,8 @@ export const mockCategories: TripCategory[] = [
 
 const IMG = {
   snow: "https://images.unsplash.com/photo-1551524559-8af4e6624178?w=800&q=80",
+  snowTrail: "https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=800&q=80",
+  snowCamp: "https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&q=80",
   trek: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
   valley: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80",
   pass: "https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=800&q=80",
@@ -161,7 +163,7 @@ export const mockTrips: Trip[] = [
     location: "Joshimath, Uttarakhand", duration_days: 6, duration_nights: 5, price: 9999,
     difficulty: "moderate", rating: 4.8, review_count: 186, is_popular: true,
     altitude: "3650m", highlights: ["Nanda Devi views", "Oak forests", "Curzon Trail"],
-    trip_images: tripImage("w2", "w2", IMG.snow, "Kuari Pass Trek"),
+    trip_images: tripImage("w2", "w2", IMG.snowTrail, "Kuari Pass Trek"),
   }),
   baseTrip({
     id: "w3", title: "Dayara Bugyal Trek", slug: "dayara-bugyal-trek", season: "winter", trip_type: "trek",
@@ -175,7 +177,7 @@ export const mockTrips: Trip[] = [
     location: "Chamoli, Uttarakhand", duration_days: 6, duration_nights: 5, price: 9499, discount_price: 8499,
     difficulty: "moderate", rating: 4.7, review_count: 156, is_popular: true,
     altitude: "3720m", highlights: ["Frozen lake", "Mt Trishul views", "Winter camps"],
-    trip_images: tripImage("w4", "w4", IMG.snow, "Brahmatal Trek"),
+    trip_images: tripImage("w4", "w4", IMG.snowCamp, "Brahmatal Trek"),
   }),
 
   // Summer Treks
