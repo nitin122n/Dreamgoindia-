@@ -584,6 +584,7 @@ export function useAdminTripMutations() {
             is_visible: item.is_visible ?? true,
             seo_title: item.seo_title ?? null,
             seo_description: item.seo_description ?? null,
+            itinerary_pdf_url: item.itinerary_pdf_url ?? null,
             created_at: new Date().toISOString(),
             trip_images: coverUrl
               ? [
@@ -632,6 +633,7 @@ export function useAdminTripMutations() {
         inclusions: (item.inclusions ?? []).map((s) => s.trim()).filter(Boolean),
         exclusions: (item.exclusions ?? []).map((s) => s.trim()).filter(Boolean),
         faqs: item.faqs ?? [],
+        itinerary_pdf_url: item.itinerary_pdf_url?.trim() || null,
       };
 
       // trip_type may be missing on older DBs — try with it, retry without

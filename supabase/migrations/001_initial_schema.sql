@@ -57,7 +57,7 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email, full_name, avatar_url, referral_code)
+  INSERT INTO public.profiles (id, email, full_name, phone, avatar_url, referral_code, role)
   VALUES (
     NEW.id,
     NEW.email,
@@ -65,9 +65,12 @@ BEGIN
       NEW.raw_user_meta_data ->> 'full_name',
       NEW.raw_user_meta_data ->> 'name'
     ),
+    NULLIF(btrim(NEW.raw_user_meta_data ->> 'phone'), ''),
     NEW.raw_user_meta_data ->> 'avatar_url',
-    upper(substring(md5(random()::text) from 1 for 8))
-  );
+    upper(substring(md5(random()::text) from 1 for 8)),
+    COALESCE((NEW.raw_user_meta_data ->> 'role')::user_role, 'customer')
+  )
+  ON CONFLICT (id) DO NOTHING;
   RETURN NEW;
 END;
 $$;
@@ -203,6 +206,7 @@ CREATE TABLE public.trips (
   is_visible BOOLEAN NOT NULL DEFAULT true,
   seo_title TEXT,
   seo_description TEXT,
+  itinerary_pdf_url TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

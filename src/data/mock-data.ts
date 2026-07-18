@@ -143,6 +143,7 @@ function baseTrip(
     is_visible: true,
     seo_title: null,
     seo_description: null,
+    itinerary_pdf_url: null,
     created_at: new Date().toISOString(),
     trip_images: partial.trip_images ?? tripImage(partial.id, partial.id, IMG.trek, partial.title),
     ...partial,

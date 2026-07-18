@@ -117,6 +117,8 @@ export interface Trip {
   is_visible: boolean;
   seo_title: string | null;
   seo_description: string | null;
+  /** Detailed itinerary PDF (uploaded in admin) */
+  itinerary_pdf_url: string | null;
   created_at: string;
   trip_images?: TripImage[];
   destination?: Destination;

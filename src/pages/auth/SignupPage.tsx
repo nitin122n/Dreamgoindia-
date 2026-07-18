@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { User, Mail, Lock, Loader2 } from "lucide-react";
+import { User, Mail, Lock, Phone, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { SEO } from "@/components/common/SEO";
@@ -24,7 +24,7 @@ export default function SignupPage() {
   });
 
   const onSubmit = async (data: SignupFormValues) => {
-    const { error } = await signUp(data.email, data.password, data.fullName);
+    const { error } = await signUp(data.email, data.password, data.fullName, data.phone);
     if (error) {
       toast.error(error.message || "Signup failed");
       return;
@@ -72,6 +72,23 @@ export default function SignupPage() {
             />
           </div>
           {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="phone">Phone Number</Label>
+          <div className="relative">
+            <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Input
+              id="phone"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder="10-digit mobile number"
+              className="pl-10"
+              {...register("phone")}
+            />
+          </div>
+          {errors.phone && <p className="text-xs text-red-500">{errors.phone.message}</p>}
         </div>
 
         <div className="space-y-2">

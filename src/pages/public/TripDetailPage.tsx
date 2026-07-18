@@ -9,6 +9,7 @@ import {
   X,
   ChevronRight,
   Users,
+  Download,
 } from "lucide-react";
 import { SEO } from "@/components/common/SEO";
 import { LocationMap } from "@/components/common/LocationMap";
@@ -46,6 +47,26 @@ export default function TripDetailPage() {
       return;
     }
     navigate(`/trips/${trip.slug}/book`);
+  };
+
+  const handleDownloadItinerary = () => {
+    if (!trip?.itinerary_pdf_url) return;
+    if (authLoading) return;
+    if (!isAuthenticated) {
+      toast.error("Please sign in to download the itinerary");
+      navigate("/auth/login", {
+        state: { from: { pathname: `/trips/${trip.slug}` } },
+      });
+      return;
+    }
+    const link = document.createElement("a");
+    link.href = trip.itinerary_pdf_url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.download = `${trip.slug || "itinerary"}-detailed.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (isLoading) {
@@ -122,20 +143,6 @@ export default function TripDetailPage() {
       <div className="container mx-auto px-4 py-10">
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="space-y-10 lg:col-span-2">
-            {/* Gallery */}
-            {images.length > 1 && (
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                {images.slice(0, 4).map((img) => (
-                  <img
-                    key={img.id}
-                    src={img.image_url}
-                    alt={img.alt_text ?? trip.title}
-                    className="aspect-square rounded-xl object-cover"
-                  />
-                ))}
-              </div>
-            )}
-
             {/* Highlights */}
             {trip.highlights?.length > 0 && (
               <section>
@@ -326,6 +333,23 @@ export default function TripDetailPage() {
                   >
                     {isAuthenticated ? "Book Now" : "Sign in to Book"}
                   </Button>
+
+                  {trip.itinerary_pdf_url && (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="mt-3 w-full"
+                      size="lg"
+                      onClick={handleDownloadItinerary}
+                      disabled={authLoading}
+                    >
+                      <Download className="h-4 w-4" />
+                      {isAuthenticated
+                        ? "Download detailed itinerary"
+                        : "Sign in to download itinerary"}
+                    </Button>
+                  )}
+
                   <p className="mt-3 text-center text-xs text-gray-500">
                     {isAuthenticated
                       ? "Free cancellation up to 30 days before departure"

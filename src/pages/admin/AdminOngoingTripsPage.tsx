@@ -6,6 +6,7 @@ import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { DataTable } from "@/components/admin/DataTable";
 import { FormField } from "@/components/admin/FormField";
 import { ItineraryEditor, StringListEditor } from "@/components/admin/TripContentEditors";
+import { PdfUploader } from "@/components/admin/PdfUploader";
 import { VisibilityField } from "@/components/admin/VisibilityField";
 import { ImageUploader } from "@/components/admin/settings/ImageUploader";
 import { adminInputClass, adminSelectTriggerClass } from "@/components/admin/admin-styles";
@@ -48,6 +49,7 @@ const emptyTrip = (): TripForm => ({
   itinerary: [],
   inclusions: [],
   exclusions: [],
+  itinerary_pdf_url: null,
   cover_url: "",
 });
 
@@ -363,6 +365,16 @@ export default function AdminOngoingTripsPage() {
             </Select>
           </FormField>
         </div>
+        <FormField
+          label="Detailed itinerary PDF"
+          hint="Uploaded PDF can be downloaded by signed-in users on the trip page"
+        >
+          <PdfUploader
+            value={form.itinerary_pdf_url}
+            onChange={(url) => setForm({ ...form, itinerary_pdf_url: url || null })}
+          />
+        </FormField>
+
         <ItineraryEditor
           days={form.itinerary ?? []}
           onChange={(itinerary) => setForm({ ...form, itinerary })}

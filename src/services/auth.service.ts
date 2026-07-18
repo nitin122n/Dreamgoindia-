@@ -49,6 +49,7 @@ export async function signUpWithEmail(
   email: string,
   password: string,
   fullName?: string,
+  phone?: string,
 ): Promise<{ user: User | null; session: Session | null }> {
   ensureSupabaseConfigured();
 
@@ -58,6 +59,7 @@ export async function signUpWithEmail(
     options: {
       data: {
         full_name: fullName ?? "",
+        ...(phone?.trim() ? { phone: phone.trim() } : {}),
       },
     },
   });
