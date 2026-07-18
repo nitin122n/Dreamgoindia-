@@ -5,6 +5,7 @@ import { AdminFormDialog } from "@/components/admin/AdminFormDialog";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { DataTable } from "@/components/admin/DataTable";
 import { FormField } from "@/components/admin/FormField";
+import { ItineraryEditor, StringListEditor } from "@/components/admin/TripContentEditors";
 import { VisibilityField } from "@/components/admin/VisibilityField";
 import { ImageUploader } from "@/components/admin/settings/ImageUploader";
 import { adminInputClass, adminSelectTriggerClass } from "@/components/admin/admin-styles";
@@ -44,6 +45,9 @@ const emptyTrip = (): TripForm => ({
   is_popular: true,
   is_featured: true,
   is_visible: true,
+  itinerary: [],
+  inclusions: [],
+  exclusions: [],
   cover_url: "",
 });
 
@@ -359,6 +363,29 @@ export default function AdminOngoingTripsPage() {
             </Select>
           </FormField>
         </div>
+        <ItineraryEditor
+          days={form.itinerary ?? []}
+          onChange={(itinerary) => setForm({ ...form, itinerary })}
+        />
+
+        <StringListEditor
+          label="Inclusions"
+          hint="What’s included in the package"
+          items={form.inclusions ?? []}
+          onChange={(inclusions) => setForm({ ...form, inclusions })}
+          placeholder="e.g. Certified trek guide"
+          addLabel="Add inclusion"
+        />
+
+        <StringListEditor
+          label="Exclusions"
+          hint="What’s not included"
+          items={form.exclusions ?? []}
+          onChange={(exclusions) => setForm({ ...form, exclusions })}
+          placeholder="e.g. Travel insurance"
+          addLabel="Add exclusion"
+        />
+
         <VisibilityField
           label="Visible on website"
           description="Hide without removing from ongoing list"

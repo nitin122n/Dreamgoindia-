@@ -627,6 +627,11 @@ export function useAdminTripMutations() {
         map_lat: item.map_lat ?? null,
         map_lng: item.map_lng ?? null,
         altitude: item.altitude ?? null,
+        highlights: item.highlights ?? [],
+        itinerary: item.itinerary ?? [],
+        inclusions: (item.inclusions ?? []).map((s) => s.trim()).filter(Boolean),
+        exclusions: (item.exclusions ?? []).map((s) => s.trim()).filter(Boolean),
+        faqs: item.faqs ?? [],
       };
 
       // trip_type may be missing on older DBs — try with it, retry without

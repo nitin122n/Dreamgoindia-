@@ -121,15 +121,15 @@
 
 @keyframes home-marquee-scroll {
   0% {
-    transform: translateX(0);
+    transform: translateX(100vw);
   }
   100% {
-    transform: translateX(-50%);
+    transform: translateX(-100%);
   }
 }
 
 .home-marquee {
-  animation: home-marquee-scroll 28s linear infinite;
+  animation: home-marquee-scroll 22s linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

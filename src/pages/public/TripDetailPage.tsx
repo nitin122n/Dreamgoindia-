@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { SEO } from "@/components/common/SEO";
 import { LocationMap } from "@/components/common/LocationMap";
+import { TripItinerary } from "@/components/trips/TripItinerary";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,38 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useTrip, useTestimonials } from "@/hooks/useCMS";
 import { useAuth } from "@/hooks/useAuth";
 import { formatPrice, cn } from "@/lib/utils";
-import type { ItineraryDay, FAQItem } from "@/types";
 import toast from "react-hot-toast";
-
-const DEFAULT_ITINERARY: ItineraryDay[] = [
-  { day: 1, title: "Arrival & Briefing", description: "Meet at base camp, gear check, and orientation session with your trek leader." },
-  { day: 2, title: "Trek Begins", description: "Start the journey through scenic trails with packed lunch en route." },
-  { day: 3, title: "Summit Day", description: "Early morning ascent to the viewpoint. Witness breathtaking panoramic views." },
-  { day: 4, title: "Descent & Celebration", description: "Trek back to base camp. Certificate ceremony and group dinner." },
-];
-
-const DEFAULT_INCLUSIONS = [
-  "Accommodation in tents/hotels",
-  "All meals during the trek",
-  "Certified trek guide",
-  "Permits and entry fees",
-  "First aid kit",
-  "Transport from base to trailhead",
-];
-
-const DEFAULT_EXCLUSIONS = [
-  "Personal trekking gear",
-  "Travel insurance",
-  "Meals not mentioned",
-  "Porter charges",
-  "Any personal expenses",
-];
-
-const DEFAULT_FAQS: FAQItem[] = [
-  { question: "What fitness level is required?", answer: "Basic cardiovascular fitness is recommended. We provide a pre-trek fitness guide after booking." },
-  { question: "What should I pack?", answer: "Warm layers, trekking shoes, rain jacket, sunscreen, and a personal water bottle. A detailed packing list is shared upon confirmation." },
-  { question: "Is altitude sickness a concern?", answer: "Our itineraries include acclimatization days. Guides are trained to identify and manage altitude-related symptoms." },
-];
 
 export default function TripDetailPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -104,10 +74,10 @@ export default function TripDetailPage() {
   const images = trip.trip_images?.length
     ? trip.trip_images
     : [{ id: "0", trip_id: trip.id, image_url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80", alt_text: trip.title, sort_order: 0, is_cover: true }];
-  const itinerary = trip.itinerary?.length ? trip.itinerary : DEFAULT_ITINERARY;
-  const inclusions = trip.inclusions?.length ? trip.inclusions : DEFAULT_INCLUSIONS;
-  const exclusions = trip.exclusions?.length ? trip.exclusions : DEFAULT_EXCLUSIONS;
-  const faqs = trip.faqs?.length ? trip.faqs : DEFAULT_FAQS;
+  const itinerary = trip.itinerary ?? [];
+  const inclusions = trip.inclusions ?? [];
+  const exclusions = trip.exclusions ?? [];
+  const faqs = trip.faqs ?? [];
   const displayPrice = trip.discount_price ?? trip.price;
   const tripReviews = testimonials?.filter((t) => t.trip_name?.includes(trip.title.split(" ")[0])) ?? testimonials?.slice(0, 3);
 
@@ -167,17 +137,19 @@ export default function TripDetailPage() {
             )}
 
             {/* Highlights */}
-            <section>
-              <h2 className="mb-4 text-2xl font-bold">Highlights</h2>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {trip.highlights.map((h) => (
-                  <div key={h} className="flex items-center gap-2 rounded-xl bg-primary/5 px-4 py-3">
-                    <ChevronRight className="h-4 w-4 shrink-0 text-primary" />
-                    <span className="text-sm font-medium">{h}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
+            {trip.highlights?.length > 0 && (
+              <section>
+                <h2 className="mb-4 text-2xl font-bold">Highlights</h2>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {trip.highlights.map((h) => (
+                    <div key={h} className="flex items-center gap-2 rounded-xl bg-primary/5 px-4 py-3">
+                      <ChevronRight className="h-4 w-4 shrink-0 text-primary" />
+                      <span className="text-sm font-medium">{h}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* Overview */}
             <section>
@@ -192,60 +164,51 @@ export default function TripDetailPage() {
             </section>
 
             {/* Itinerary */}
-            <section>
-              <h2 className="mb-4 text-2xl font-bold">Itinerary</h2>
-              <div className="space-y-4">
-                {itinerary.map((day) => (
-                  <div key={day.day} className="flex gap-4 rounded-xl border border-gray-100 p-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">
-                      {day.day}
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-gray-900">{day.title}</h3>
-                      <p className="mt-1 text-sm text-gray-600">{day.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
+            {itinerary.length > 0 && <TripItinerary days={itinerary} />}
 
             {/* Inclusions / Exclusions */}
-            <div className="grid gap-6 md:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-green-700">
-                    <Check className="h-5 w-5" /> Inclusions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {inclusions.map((item) => (
-                      <li key={item} className="flex items-start gap-2 text-sm text-gray-600">
-                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-red-600">
-                    <X className="h-5 w-5" /> Exclusions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {exclusions.map((item) => (
-                      <li key={item} className="flex items-start gap-2 text-sm text-gray-600">
-                        <X className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            </div>
+            {(inclusions.length > 0 || exclusions.length > 0) && (
+              <div className="grid gap-6 md:grid-cols-2">
+                {inclusions.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-green-700">
+                        <Check className="h-5 w-5" /> Inclusions
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {inclusions.map((item) => (
+                          <li key={item} className="flex items-start gap-2 text-sm text-gray-600">
+                            <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                )}
+                {exclusions.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-red-600">
+                        <X className="h-5 w-5" /> Exclusions
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {exclusions.map((item) => (
+                          <li key={item} className="flex items-start gap-2 text-sm text-gray-600">
+                            <X className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
 
             <section>
               <h2 className="mb-4 text-2xl font-bold">Location</h2>
@@ -278,17 +241,19 @@ export default function TripDetailPage() {
             </section>
 
             {/* FAQs */}
-            <section>
-              <h2 className="mb-4 text-2xl font-bold">FAQs</h2>
-              <Accordion type="single" collapsible className="rounded-2xl bg-white px-6 premium-shadow">
-                {faqs.map((faq, i) => (
-                  <AccordionItem key={i} value={`faq-${i}`}>
-                    <AccordionTrigger>{faq.question}</AccordionTrigger>
-                    <AccordionContent>{faq.answer}</AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </section>
+            {faqs.length > 0 && (
+              <section>
+                <h2 className="mb-4 text-2xl font-bold">FAQs</h2>
+                <Accordion type="single" collapsible className="rounded-2xl bg-white px-6 premium-shadow">
+                  {faqs.map((faq, i) => (
+                    <AccordionItem key={i} value={`faq-${i}`}>
+                      <AccordionTrigger>{faq.question}</AccordionTrigger>
+                      <AccordionContent>{faq.answer}</AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </section>
+            )}
 
             {/* Reviews */}
             <section>
