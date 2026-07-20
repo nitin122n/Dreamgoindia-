@@ -14,7 +14,6 @@ import {
   Home,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { InstagramIcon } from "@/components/common/SocialIcons";
 import { SEO } from "@/components/common/SEO";
 import { Button } from "@/components/ui/button";
 import { useSettings } from "@/contexts/SettingsContext";
@@ -211,15 +210,6 @@ export default function AboutPage() {
                   <p className="text-sm text-white/80">Founder · Mountaineer · Explorer</p>
                 </div>
               </div>
-              <a
-                href="https://www.instagram.com/sanju__chauhanofficial/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="relative z-10 mt-4 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/5 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white"
-              >
-                <InstagramIcon className="h-4 w-4" />
-                @sanju__chauhanofficial
-              </a>
             </motion.div>
 
             <motion.div
