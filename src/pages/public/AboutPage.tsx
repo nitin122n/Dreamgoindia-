@@ -199,7 +199,7 @@ export default function AboutPage() {
               viewport={{ once: true }}
               className="relative mx-auto w-full max-w-md lg:mx-0"
             >
-              <div className="absolute -inset-3 rounded-[1.75rem] bg-gradient-to-br from-primary/30 via-primary/5 to-transparent blur-sm" />
+              <div className="pointer-events-none absolute -inset-3 rounded-[1.75rem] bg-gradient-to-br from-primary/30 via-primary/5 to-transparent blur-sm" />
               <div className="relative overflow-hidden rounded-[1.5rem] border border-gray-200 shadow-xl dark:border-white/10">
                 <img
                   src={founderImage}
@@ -215,7 +215,7 @@ export default function AboutPage() {
                 href="https://www.instagram.com/sanju__chauhanofficial/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-4 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/5 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white"
+                className="relative z-10 mt-4 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/5 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white"
               >
                 <InstagramIcon className="h-4 w-4" />
                 @sanju__chauhanofficial
