@@ -32,7 +32,7 @@ export function Logo({ className, showText = true, variant = "default", to = "/"
   const parts = name.split(/\s+/);
   const brandStart = parts.slice(0, Math.max(parts.length - 1, 1)).join(" ");
   const brandAccent = parts.length > 1 ? parts[parts.length - 1] : "";
-  const tagline = "Experience the difference";
+  const tagline = "Experience The Difference";
 
   return (
     <Link to={to} className={cn("inline-flex items-center gap-2.5", className)} aria-label={settings.site_name}>
@@ -48,14 +48,14 @@ export function Logo({ className, showText = true, variant = "default", to = "/"
         <FallbackMark isWhite={isWhite} />
       )}
       {showText && (
-        <div className="flex flex-col items-start justify-center leading-none">
+        <div className="flex flex-col items-center justify-center text-center leading-none">
           <span className={cn("whitespace-nowrap text-sm font-bold", isWhite ? "text-white" : "text-gray-900")}>
             {brandStart}
             {brandAccent && <span className="text-primary"> {brandAccent}</span>}
           </span>
           <span
             className={cn(
-              "mt-0.5 whitespace-nowrap text-[11px] font-semibold",
+              "origin-top scale-[0.62] whitespace-nowrap text-[10px] font-semibold tracking-wide",
               isWhite ? "text-white/85" : "text-gray-900"
             )}
           >

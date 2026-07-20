@@ -184,80 +184,93 @@ export default function AboutPage() {
 
       <AboutBanner siteName={siteName} />
 
-      {/* Founder */}
+      {/* Founder — “Meet Our Team” style */}
       <section className="relative overflow-hidden bg-white py-16 dark:bg-gray-950 md:py-20">
-        <div
+        {/* Line-art: mountain on the right */}
+        <svg
           aria-hidden
-          className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-primary/5 blur-3xl dark:bg-primary/10"
-        />
-        <div className="container relative mx-auto px-4 lg:px-8">
-          <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="relative mx-auto w-full max-w-sm text-center lg:mx-0"
-            >
-              <div className="relative mx-auto aspect-square w-64 sm:w-80">
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute -inset-4 rounded-full bg-gradient-to-br from-primary/25 via-primary/5 to-transparent blur-md"
-                />
-                <div className="relative h-full w-full overflow-hidden rounded-full border-4 border-white shadow-xl ring-1 ring-gray-200 dark:border-gray-900 dark:ring-white/10">
-                  <img
-                    src={founderImage}
-                    alt="Sanoj Chauhan — founder of Dream Go India"
-                    className="h-full w-full object-cover object-[center_18%]"
-                  />
-                </div>
-              </div>
-              <p className="mt-6 font-display text-2xl font-semibold tracking-wide text-gray-900 dark:text-white sm:text-3xl">
-                Sanoj Chauhan
-              </p>
-              <p className="mt-1.5 text-sm uppercase tracking-[0.22em] text-gray-500 dark:text-gray-400">
-                Founder · Mountaineer · Explorer
-              </p>
-            </motion.div>
+          viewBox="0 0 300 220"
+          fill="none"
+          className="pointer-events-none absolute -right-8 bottom-8 hidden h-56 w-auto text-gray-200 dark:text-white/10 lg:block"
+        >
+          <path d="M10 200 L110 60 L160 120 L220 30 L290 200" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+          <path d="M200 60 L220 30 L242 62" stroke="currentColor" strokeWidth="1.2" opacity="0.7" />
+        </svg>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.08 }}
-            >
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">
-                Meet the founder
-              </p>
-              <h2 className="mt-2 font-display text-3xl font-bold text-gray-900 dark:text-white md:text-4xl">
-                Sanoj Chauhan
-              </h2>
-              <p className="mt-3 text-lg font-medium text-gray-700 dark:text-gray-200">
-                Passionate mountaineer, aspiring climber, and expedition enthusiast
-              </p>
-              <div className="mt-6 space-y-4 text-base leading-relaxed text-gray-600 dark:text-gray-300">
-                <p>
-                  Sanoj Chauhan is an explorer, entrepreneur, and professional mountaineer.
-                  Traveling was the only thing he always wanted to do in his life.
-                </p>
-                <p>
-                  Hailing from Gangad, this avid traveler started exploring when he was a small
-                  boy — beginning with nearby places alongside family and friends, and growing
-                  into Himalayan expeditions that shape every journey at {siteName}.
-                </p>
+        <div className="container relative mx-auto px-4 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white md:text-3xl">
+              The Mind Behind Your <span className="text-primary">Adventures</span>
+            </h2>
+            <p className="mt-1 text-lg text-gray-600 dark:text-gray-400">Meet the Founder</p>
+          </motion.div>
+
+          {/* Centered circular photo with name below */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.08 }}
+            className="mx-auto mt-10 max-w-xs text-center"
+          >
+            <div className="relative mx-auto aspect-square w-56 sm:w-64">
+              <div className="relative h-full w-full overflow-hidden rounded-full border-4 border-white shadow-xl ring-1 ring-black/5 dark:border-gray-900 dark:ring-white/10">
+                <img
+                  src={founderImage}
+                  alt="Sanoj Chauhan — founder of Dream Go India"
+                  className="h-full w-full object-cover object-[center_18%]"
+                />
               </div>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <span className="rounded-full border border-primary/25 bg-primary/5 px-4 py-1.5 text-xs font-semibold text-primary">
-                  Professional Mountaineer
-                </span>
-                <span className="rounded-full border border-primary/25 bg-primary/5 px-4 py-1.5 text-xs font-semibold text-primary">
-                  Expedition Enthusiast
-                </span>
-                <span className="rounded-full border border-primary/25 bg-primary/5 px-4 py-1.5 text-xs font-semibold text-primary">
-                  From Gangad
-                </span>
-              </div>
-            </motion.div>
-          </div>
+            </div>
+            <p className="mt-5 font-display text-2xl font-semibold text-gray-900 dark:text-white">
+              Sanoj Chauhan
+            </p>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Founder · Mountaineer · Explorer
+            </p>
+          </motion.div>
+
+          {/* Bio — “Meet the Soul Behind the Journeys” */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.12 }}
+            className="mx-auto mt-14 max-w-3xl"
+          >
+            <div className="border-l-4 border-primary pl-4">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white md:text-2xl">
+                Meet the Soul Behind the Journeys
+              </h3>
+            </div>
+            <div className="mt-5 space-y-4 text-base leading-relaxed text-gray-600 dark:text-gray-300">
+              <p>
+                Sanoj Chauhan is an explorer, entrepreneur, and professional mountaineer —
+                a passionate mountaineer, aspiring climber, and expedition enthusiast.
+                Traveling was the only thing he always wanted to do in his life.
+              </p>
+              <p>
+                Hailing from Gangad, this avid traveler started exploring when he was a small
+                boy — beginning with nearby places alongside family and friends, and growing
+                into Himalayan expeditions that shape every journey at {siteName}.
+              </p>
+            </div>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <span className="rounded-full border border-primary/25 bg-primary/5 px-4 py-1.5 text-xs font-semibold text-primary">
+                Professional Mountaineer
+              </span>
+              <span className="rounded-full border border-primary/25 bg-primary/5 px-4 py-1.5 text-xs font-semibold text-primary">
+                Expedition Enthusiast
+              </span>
+              <span className="rounded-full border border-primary/25 bg-primary/5 px-4 py-1.5 text-xs font-semibold text-primary">
+                From Gangad
+              </span>
+            </div>
+          </motion.div>
         </div>
       </section>
 
