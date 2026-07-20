@@ -57,7 +57,7 @@ export default function AdminOngoingTripsPage() {
   const { data: allTrips = [], isLoading } = useAdminTrips();
   const { data: categories = [] } = useAdminCategories();
   const { data: destinations = [] } = useAdminDestinations();
-  const { save } = useAdminTripMutations();
+  const { save, reorder } = useAdminTripMutations();
 
   const ongoing = useMemo(
     () => allTrips.filter((t) => t.is_popular),
@@ -127,6 +127,33 @@ export default function AdminOngoingTripsPage() {
     }
   };
 
+  /**
+   * Move an ongoing trip to the chosen position (0-based) within the ongoing list.
+   * Reorders only inside the slots occupied by ongoing trips, so other trips
+   * keep their positions in the main Trips list.
+   */
+  const setOngoingPosition = async (from: number, to: number) => {
+    if (to === from || to < 0 || to >= ongoing.length) return;
+    const nextOngoing = [...ongoing];
+    const [moved] = nextOngoing.splice(from, 1);
+    nextOngoing.splice(to, 0, moved);
+
+    const next = [...allTrips];
+    const slots = next
+      .map((t, i) => (t.is_popular ? i : -1))
+      .filter((i) => i >= 0);
+    slots.forEach((slot, i) => {
+      next[slot] = nextOngoing[i];
+    });
+
+    try {
+      await reorder.mutateAsync(next);
+      toast.success(`Moved to position ${to + 1}`);
+    } catch (e) {
+      toast.error((e as Error).message || "Failed to update position");
+    }
+  };
+
   const removeFromOngoing = async (trip: Trip) => {
     if (!confirm(`Remove “${trip.title}” from the Ongoing Trip section?`)) return;
     try {
@@ -169,6 +196,31 @@ export default function AdminOngoingTripsPage() {
         data={ongoing}
         keyExtractor={(t) => t.id}
         columns={[
+          {
+            key: "position",
+            header: "Position",
+            cell: (t) => {
+              const index = ongoing.findIndex((x) => x.id === t.id);
+              return (
+                <Select
+                  value={String(index + 1)}
+                  onValueChange={(v) => void setOngoingPosition(index, Number(v) - 1)}
+                  disabled={reorder.isPending}
+                >
+                  <SelectTrigger className="h-9 w-[72px] rounded-lg border-white/10 bg-white/5 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ongoing.map((_, i) => (
+                      <SelectItem key={i} value={String(i + 1)}>
+                        {i + 1}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              );
+            },
+          },
           {
             key: "title",
             header: "Title",

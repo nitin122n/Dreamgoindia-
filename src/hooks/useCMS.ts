@@ -8,7 +8,8 @@ import {
 } from "@/data/mock-data";
 import { getAdminMockStore } from "@/lib/admin-mock-store";
 import { useMockCms } from "@/lib/cms-mode";
-import type { Trip } from "@/types";
+import { INSTAGRAM_POSTS } from "@/data/instagram-posts";
+import type { InstagramPost, Trip } from "@/types";
 
 /** Offline / missing-env fallback only */
 function store() {
@@ -110,19 +111,27 @@ export function useTrips(filters?: {
         }
         if (filters?.featured) trips = trips.filter((t) => t.is_featured);
         if (filters?.ongoing) trips = trips.filter((t) => t.is_popular);
-        return trips;
+        return [...trips].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
       }
 
-      let query = supabase
-        .from("trips")
-        .select("*, trip_images(*), destination:destinations(*), category:trip_categories(*)")
-        .eq("is_visible", true);
+      const buildQuery = () => {
+        let query = supabase
+          .from("trips")
+          .select("*, trip_images(*), destination:destinations(*), category:trip_categories(*)")
+          .eq("is_visible", true);
+        if (filters?.featured) query = query.eq("is_featured", true);
+        if (filters?.ongoing) query = query.eq("is_popular", true);
+        if (filters?.season) query = query.eq("season", filters.season);
+        return query;
+      };
 
-      if (filters?.featured) query = query.eq("is_featured", true);
-      if (filters?.ongoing) query = query.eq("is_popular", true);
-      if (filters?.season) query = query.eq("season", filters.season);
-
-      const { data, error } = await query.order("created_at", { ascending: false });
+      // Admin-managed position first; fall back if column not migrated yet
+      let { data, error } = await buildQuery()
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: false });
+      if (error && /sort_order/i.test(error.message ?? "")) {
+        ({ data, error } = await buildQuery().order("created_at", { ascending: false }));
+      }
       if (error) throw error;
 
       let result = (data as Trip[]) ?? [];
@@ -142,6 +151,28 @@ export function useTrips(filters?: {
 /** Trips marked for the homepage “Ongoing Trip” section (`is_popular`) */
 export function useOngoingTrips() {
   return useTrips({ ongoing: true });
+}
+
+/** Homepage “Instagram images” cards — falls back to bundled posts */
+export function useInstagramPosts() {
+  return useQuery({
+    queryKey: ["instagram-posts"],
+    queryFn: async (): Promise<InstagramPost[]> => {
+      if (useMockCms()) {
+        return [...store().instagramPosts]
+          .filter((p) => p.is_visible !== false)
+          .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+      }
+      const { data, error } = await supabase
+        .from("instagram_posts")
+        .select("*")
+        .eq("is_visible", true)
+        .order("sort_order");
+      // Table may not exist yet on older DBs — fall back to bundled posts
+      if (error) return INSTAGRAM_POSTS;
+      return (data as InstagramPost[]) ?? [];
+    },
+  });
 }
 
 export function useTrip(slug: string) {

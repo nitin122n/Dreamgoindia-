@@ -114,6 +114,8 @@ CREATE TABLE public.settings (
   payment_razorpay_key TEXT,
   payment_stripe_key TEXT,
   home_marquee_text TEXT,
+  admin_panel_password_hash TEXT,
+  about_founder_image TEXT,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -207,6 +209,7 @@ CREATE TABLE public.trips (
   seo_title TEXT,
   seo_description TEXT,
   itinerary_pdf_url TEXT,
+  sort_order INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

@@ -40,5 +40,8 @@ export function mapSettingsRow(row: Record<string, unknown>): SiteSettings {
     home_marquee_text: String(
       row.home_marquee_text ?? defaultSettings.home_marquee_text ?? ""
     ),
+    about_founder_image: String(
+      row.about_founder_image ?? defaultSettings.about_founder_image ?? ""
+    ),
   };
 }

@@ -38,8 +38,11 @@ export function filterHomepageTreks(
     filtered = visible.filter((t) => isTrekTrip(t) && matchesSeason(t, tab));
   }
 
-  // Prefer featured / ongoing first
+  // Admin-managed position first (lower sort_order = earlier), then featured, then rating
   return filtered.sort((a, b) => {
+    const ao = a.sort_order ?? 0;
+    const bo = b.sort_order ?? 0;
+    if (ao !== bo) return ao - bo;
     const af = a.is_featured ? 1 : 0;
     const bf = b.is_featured ? 1 : 0;
     if (bf !== af) return bf - af;

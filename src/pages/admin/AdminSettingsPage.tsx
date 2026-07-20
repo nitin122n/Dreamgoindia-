@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
@@ -40,12 +40,16 @@ function toFormValues(settings: SiteSettings): SettingsFormValues {
     google_analytics_id: settings.google_analytics_id ?? "",
     payment_razorpay_key: settings.payment_razorpay_key ?? "",
     home_marquee_text: settings.home_marquee_text ?? "",
+    about_founder_image: settings.about_founder_image ?? "",
   };
 }
 
 export default function AdminSettingsPage() {
   const { data: settings, isLoading, isError, error, refetch } = useAdminSettings();
-  const { save } = useAdminSettingsMutations();
+  const { save, updateAdminPanelPassword } = useAdminSettingsMutations();
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const {
     register,
@@ -77,6 +81,33 @@ export default function AdminSettingsPage() {
       toast.success("Settings saved");
     } catch (e) {
       toast.error((e as Error).message || "Failed to save settings");
+    }
+  };
+
+  const onChangeAdminPassword = async () => {
+    if (!currentPassword.trim()) {
+      toast.error("Enter your current password");
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast.error("New password must be at least 6 characters");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords do not match");
+      return;
+    }
+    try {
+      await updateAdminPanelPassword.mutateAsync({
+        currentPassword,
+        newPassword,
+      });
+      toast.success("Admin panel password updated");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (e) {
+      toast.error((e as Error).message || "Failed to update password");
     }
   };
 
@@ -160,6 +191,23 @@ export default function AdminSettingsPage() {
               rows={3}
               className={adminTextareaClass}
               {...register("footer_text")}
+            />
+          </FormField>
+
+          <FormField
+            label="Founder Photo (About page)"
+            hint="Shown in the “Meet the founder” section of the About page"
+          >
+            <Controller
+              name="about_founder_image"
+              control={control}
+              render={({ field }) => (
+                <ImageUploader
+                  value={field.value}
+                  onChange={field.onChange}
+                  folder="about"
+                />
+              )}
             />
           </FormField>
 
@@ -283,6 +331,53 @@ export default function AdminSettingsPage() {
           </FormField>
         </ComponentCard>
       </form>
+
+      <ComponentCard
+        title="Admin panel password"
+        description="Change the password used at /admin/login (email stays the same)"
+      >
+        <FormField label="Current password" htmlFor="admin_current_password">
+          <Input
+            id="admin_current_password"
+            type="password"
+            autoComplete="current-password"
+            className={adminInputClass}
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            placeholder="Current admin password"
+          />
+        </FormField>
+        <FormField label="New password" htmlFor="admin_new_password">
+          <Input
+            id="admin_new_password"
+            type="password"
+            autoComplete="new-password"
+            className={adminInputClass}
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="At least 6 characters"
+          />
+        </FormField>
+        <FormField label="Confirm new password" htmlFor="admin_confirm_password">
+          <Input
+            id="admin_confirm_password"
+            type="password"
+            autoComplete="new-password"
+            className={adminInputClass}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Re-enter new password"
+          />
+        </FormField>
+        <Button
+          type="button"
+          className="h-11 rounded-lg"
+          disabled={updateAdminPanelPassword.isPending}
+          onClick={() => void onChangeAdminPassword()}
+        >
+          {updateAdminPanelPassword.isPending ? "Updating..." : "Update admin password"}
+        </Button>
+      </ComponentCard>
     </AdminPageShell>
   );
 }

@@ -1,11 +1,9 @@
 import { ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 import { useSettings } from "@/contexts/SettingsContext";
-import {
-  INSTAGRAM_POSTS,
-  INSTAGRAM_USERNAME,
-  type InstagramPost,
-} from "@/data/instagram-posts";
+import { useInstagramPosts } from "@/hooks/useCMS";
+import { INSTAGRAM_POSTS, INSTAGRAM_USERNAME } from "@/data/instagram-posts";
+import type { InstagramPost } from "@/types";
 
 function InstagramPostCard({
   post,
@@ -55,8 +53,8 @@ function InstagramPostCard({
         aria-label={`Open Instagram post: ${post.caption}`}
       >
         <img
-          src={post.image}
-          alt={post.caption}
+          src={post.image_url}
+          alt={post.caption ?? ""}
           className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
           loading="lazy"
         />
@@ -75,10 +73,13 @@ function InstagramPostCard({
 
 export function InstagramSection() {
   const { settings } = useSettings();
+  const { data: posts = INSTAGRAM_POSTS } = useInstagramPosts();
   const profileUrl =
     settings.social_links?.instagram || `https://instagram.com/${INSTAGRAM_USERNAME}`;
   const username =
     profileUrl.replace(/\/$/, "").split("/").pop()?.replace("@", "") || INSTAGRAM_USERNAME;
+
+  if (!posts.length) return null;
 
   return (
     <section className="relative overflow-hidden bg-white py-14 lg:py-20">
@@ -97,7 +98,7 @@ export function InstagramSection() {
         </motion.h2>
         <div className="mx-auto mb-10 h-1 w-12 rounded-full bg-primary" />
         <div className="grid items-stretch gap-5 md:grid-cols-3">
-          {INSTAGRAM_POSTS.map((post, i) => (
+          {posts.map((post, i) => (
             <motion.div
               key={post.id}
               initial={{ opacity: 0, y: 20 }}

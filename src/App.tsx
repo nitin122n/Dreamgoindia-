@@ -64,6 +64,7 @@ import AdminTestimonialsPage from "@/pages/admin/AdminTestimonialsPage";
 import AdminFAQPage from "@/pages/admin/AdminFAQPage";
 import AdminHeroPage from "@/pages/admin/AdminHeroPage";
 import AdminHighlightsPage from "@/pages/admin/AdminHighlightsPage";
+import AdminInstagramPage from "@/pages/admin/AdminInstagramPage";
 import AdminDestinationsPage from "@/pages/admin/AdminDestinationsPage";
 import AdminCouponsPage from "@/pages/admin/AdminCouponsPage";
 import AdminNewsletterPage from "@/pages/admin/AdminNewsletterPage";
@@ -171,6 +172,7 @@ export default function App() {
                     <Route path="faqs" element={<AdminFAQPage />} />
                     <Route path="hero" element={<AdminHeroPage />} />
                     <Route path="highlights" element={<AdminHighlightsPage />} />
+                    <Route path="instagram" element={<AdminInstagramPage />} />
                     <Route path="destinations" element={<AdminDestinationsPage />} />
                     <Route path="coupons" element={<AdminCouponsPage />} />
                     <Route path="newsletter" element={<AdminNewsletterPage />} />

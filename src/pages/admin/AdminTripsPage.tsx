@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { AdminFormDialog } from "@/components/admin/AdminFormDialog";
@@ -26,6 +26,7 @@ import {
   useAdminDestinations,
   useAdminCategories,
 } from "@/hooks/useAdmin";
+import { isDhamTrip, isTrekTrip, matchesSeason } from "@/lib/trip-filters";
 import type { Trip } from "@/types";
 
 const emptyTrip = (): Partial<Trip> & { title: string; cover_url?: string } => ({
@@ -62,10 +63,57 @@ export default function AdminTripsPage() {
   const { data: trips = [], isLoading } = useAdminTrips();
   const { data: destinations = [] } = useAdminDestinations();
   const { data: categories = [] } = useAdminCategories();
-  const { save, remove } = useAdminTripMutations();
+  const { save, remove, reorder } = useAdminTripMutations();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<TripForm>(emptyTrip());
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  /** Same grouping as the homepage Treks tabs */
+  const sections = useMemo(() => {
+    const dham = trips.filter(isDhamTrip);
+    const winter = trips.filter((t) => isTrekTrip(t) && matchesSeason(t, "winter"));
+    const summer = trips.filter((t) => isTrekTrip(t) && matchesSeason(t, "summer"));
+    const monsoon = trips.filter((t) => isTrekTrip(t) && matchesSeason(t, "monsoon"));
+    const grouped = new Set(
+      [...dham, ...winter, ...summer, ...monsoon].map((t) => t.id)
+    );
+    const other = trips.filter((t) => !grouped.has(t.id));
+    return [
+      { key: "winter", label: "Winter Treks", items: winter },
+      { key: "summer", label: "Summer Treks", items: summer },
+      { key: "monsoon", label: "Monsoon Treks", items: monsoon },
+      { key: "dham", label: "Char Dham", items: dham },
+      { key: "other", label: "Other", items: other },
+    ].filter((s) => s.items.length > 0);
+  }, [trips]);
+
+  /**
+   * Move a trip to the chosen position (0-based) inside its section.
+   * Only the slots occupied by that section's trips are rearranged, so
+   * trips in other sections keep their positions.
+   */
+  const setPositionWithin = async (items: Trip[], from: number, to: number) => {
+    if (to === from || to < 0 || to >= items.length) return;
+    const nextItems = [...items];
+    const [moved] = nextItems.splice(from, 1);
+    nextItems.splice(to, 0, moved);
+
+    const ids = new Set(items.map((t) => t.id));
+    const next = [...trips];
+    const slots = next
+      .map((t, i) => (ids.has(t.id) ? i : -1))
+      .filter((i) => i >= 0);
+    slots.forEach((slot, i) => {
+      next[slot] = nextItems[i];
+    });
+
+    try {
+      await reorder.mutateAsync(next);
+      toast.success(`Moved to position ${to + 1}`);
+    } catch (e) {
+      toast.error((e as Error).message || "Failed to update position");
+    }
+  };
 
   const openCreate = () => {
     setForm(emptyTrip());
@@ -113,82 +161,116 @@ export default function AdminTripsPage() {
         </Button>
       }
     >
-      <DataTable
-        loading={isLoading}
-        data={trips}
-        keyExtractor={(t) => t.id}
-        columns={[
-          {
-            key: "title",
-            header: "Title",
-            cell: (t) => <span className="font-medium text-white">{t.title}</span>,
-          },
-          {
-            key: "season",
-            header: "Season",
-            cell: (t) => <span className="capitalize">{t.season ?? "—"}</span>,
-          },
-          {
-            key: "type",
-            header: "Type",
-            cell: (t) => (
-              <Badge variant="secondary" className="capitalize">
-                {t.trip_type === "dham" || /yatra|dham/i.test(t.title) ? "Char Dham" : "Trek"}
-              </Badge>
-            ),
-          },
-          {
-            key: "price",
-            header: "Price",
-            cell: (t) => `₹${t.discount_price ?? t.price}`,
-          },
-          {
-            key: "homepage",
-            header: "Homepage",
-            cell: (t) => (
-              <Badge variant={t.is_featured ? "default" : "secondary"}>
-                {t.is_featured ? "Featured" : "—"}
-              </Badge>
-            ),
-          },
-          {
-            key: "status",
-            header: "Status",
-            cell: (t) => (
-              <Badge variant={t.is_visible ? "default" : "secondary"}>
-                {t.is_visible ? "Visible" : "Hidden"}
-              </Badge>
-            ),
-          },
-          {
-            key: "actions",
-            header: "Actions",
-            cell: (t) => (
-              <div className="flex gap-1">
-                <Button size="sm" variant="ghost" onClick={() => openEdit(t)}>
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-red-600"
-                  onClick={async () => {
-                    if (!confirm("Delete this trip?")) return;
-                    try {
-                      await remove.mutateAsync(t.id);
-                      toast.success("Trip deleted");
-                    } catch (e) {
-                      toast.error((e as Error).message || "Delete failed");
-                    }
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            ),
-          },
-        ]}
-      />
+      <div className="space-y-8">
+        {sections.map((section) => (
+          <div key={section.key}>
+            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-400">
+              {section.label}{" "}
+              <span className="font-normal text-gray-500">({section.items.length})</span>
+            </h3>
+            <DataTable
+              loading={isLoading}
+              data={section.items}
+              keyExtractor={(t) => t.id}
+              columns={[
+                {
+                  key: "position",
+                  header: "Position",
+                  cell: (t) => {
+                    const index = section.items.findIndex((x) => x.id === t.id);
+                    return (
+                      <Select
+                        value={String(index + 1)}
+                        onValueChange={(v) =>
+                          void setPositionWithin(section.items, index, Number(v) - 1)
+                        }
+                        disabled={reorder.isPending}
+                      >
+                        <SelectTrigger className="h-9 w-[72px] rounded-lg border-white/10 bg-white/5 text-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {section.items.map((_, i) => (
+                            <SelectItem key={i} value={String(i + 1)}>
+                              {i + 1}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    );
+                  },
+                },
+                {
+                  key: "title",
+                  header: "Title",
+                  cell: (t) => <span className="font-medium text-white">{t.title}</span>,
+                },
+                {
+                  key: "season",
+                  header: "Season",
+                  cell: (t) => <span className="capitalize">{t.season ?? "—"}</span>,
+                },
+                {
+                  key: "price",
+                  header: "Price",
+                  cell: (t) => `₹${t.discount_price ?? t.price}`,
+                },
+                {
+                  key: "homepage",
+                  header: "Homepage",
+                  cell: (t) => (
+                    <Badge variant={t.is_featured ? "default" : "secondary"}>
+                      {t.is_featured ? "Featured" : "—"}
+                    </Badge>
+                  ),
+                },
+                {
+                  key: "status",
+                  header: "Status",
+                  cell: (t) => (
+                    <Badge variant={t.is_visible ? "default" : "secondary"}>
+                      {t.is_visible ? "Visible" : "Hidden"}
+                    </Badge>
+                  ),
+                },
+                {
+                  key: "actions",
+                  header: "Actions",
+                  cell: (t) => (
+                    <div className="flex gap-1">
+                      <Button size="sm" variant="ghost" onClick={() => openEdit(t)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-red-600"
+                        onClick={async () => {
+                          if (!confirm("Delete this trip?")) return;
+                          try {
+                            await remove.mutateAsync(t.id);
+                            toast.success("Trip deleted");
+                          } catch (e) {
+                            toast.error((e as Error).message || "Delete failed");
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ),
+                },
+              ]}
+            />
+          </div>
+        ))}
+        {!isLoading && sections.length === 0 && (
+          <p className="text-sm text-gray-500">No trips yet — click “Add Trip” to create one.</p>
+        )}
+        {isLoading && sections.length === 0 && (
+          <DataTable loading data={[]} keyExtractor={(t: Trip) => t.id} columns={[]} />
+        )}
+      </div>
 
       <AdminFormDialog
         open={open}

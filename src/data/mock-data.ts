@@ -39,6 +39,7 @@ export const defaultSettings: SiteSettings = {
   payment_razorpay_key: "",
   home_marquee_text:
     "Welcome to Dream Go India — we welcome you to start a mesmerizing journey",
+  about_founder_image: "/images/sanoj-chauhan.jpg",
 };
 
 export const mockHeroSlides: HeroSlide[] = [
@@ -144,6 +145,7 @@ function baseTrip(
     seo_title: null,
     seo_description: null,
     itinerary_pdf_url: null,
+    sort_order: partial.sort_order ?? 0,
     created_at: new Date().toISOString(),
     trip_images: partial.trip_images ?? tripImage(partial.id, partial.id, IMG.trek, partial.title),
     ...partial,

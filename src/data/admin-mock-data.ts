@@ -27,7 +27,9 @@ import {
   mockTrips,
 } from "@/data/mock-data";
 import { seedHighlights } from "@/data/highlights";
+import { INSTAGRAM_POSTS } from "@/data/instagram-posts";
 import type { Highlight } from "@/types/highlight";
+import type { InstagramPost } from "@/types";
 
 export interface NewsletterSubscriber {
   id: string;
@@ -333,6 +335,7 @@ export function createAdminMockStore() {
     categories: structuredClone(mockCategories) as TripCategory[],
     trips: structuredClone(mockTrips) as Trip[],
     testimonials: structuredClone(mockTestimonials) as Testimonial[],
+    instagramPosts: structuredClone(INSTAGRAM_POSTS) as InstagramPost[],
     gallery: structuredClone(mockGallery) as GalleryItem[],
     blogs: structuredClone(mockBlogs) as Blog[],
     faqs: structuredClone(mockFaqs) as FAQ[],

@@ -25,6 +25,7 @@ export const settingsFormSchema = z.object({
   google_analytics_id: z.string(),
   payment_razorpay_key: z.string(),
   home_marquee_text: z.string(),
+  about_founder_image: z.string(),
 });
 
 export type SettingsFormValues = z.infer<typeof settingsFormSchema>;

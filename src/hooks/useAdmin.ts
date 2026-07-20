@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import {
   mockAdminStats,
   type NewsletterSubscriber,
@@ -19,6 +19,7 @@ import type {
   FAQ,
   GalleryItem,
   HeroSlide,
+  InstagramPost,
   MediaItem,
   Profile,
   Review,
@@ -55,6 +56,7 @@ const adminKeys = {
   gallery: ["admin", "gallery"] as const,
   reviews: ["admin", "reviews"] as const,
   testimonials: ["admin", "testimonials"] as const,
+  instagram: ["admin", "instagram"] as const,
   faqs: ["admin", "faqs"] as const,
   coupons: ["admin", "coupons"] as const,
   newsletter: ["admin", "newsletter"] as const,
@@ -498,11 +500,23 @@ export function useAdminTrips() {
   return useQuery({
     queryKey: adminKeys.trips,
     queryFn: async () => {
-      if (useMockCms()) return getAdminMockStore().trips;
-      const { data, error } = await supabase
+      if (useMockCms()) {
+        return [...getAdminMockStore().trips].sort(
+          (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
+        );
+      }
+      const select = "*, trip_images(*), destination:destinations(*), category:trip_categories(*)";
+      let { data, error } = await supabase
         .from("trips")
-        .select("*, trip_images(*), destination:destinations(*), category:trip_categories(*)")
+        .select(select)
+        .order("sort_order", { ascending: true })
         .order("created_at", { ascending: false });
+      if (error && /sort_order/i.test(error.message ?? "")) {
+        ({ data, error } = await supabase
+          .from("trips")
+          .select(select)
+          .order("created_at", { ascending: false }));
+      }
       assertNoError(error);
       return data as Trip[];
     },
@@ -585,6 +599,7 @@ export function useAdminTripMutations() {
             seo_title: item.seo_title ?? null,
             seo_description: item.seo_description ?? null,
             itinerary_pdf_url: item.itinerary_pdf_url ?? null,
+            sort_order: item.sort_order ?? store.trips.length,
             created_at: new Date().toISOString(),
             trip_images: coverUrl
               ? [
@@ -636,22 +651,28 @@ export function useAdminTripMutations() {
         itinerary_pdf_url: item.itinerary_pdf_url?.trim() || null,
       };
 
-      // trip_type may be missing on older DBs — try with it, retry without
+      // Newer columns may be missing on older DBs — try with them, retry without
       if (item.trip_type) payload.trip_type = item.trip_type;
+      if (typeof item.sort_order === "number") payload.sort_order = item.sort_order;
+      const optionalColumnsRe = /trip_type|sort_order/i;
+      const stripOptionalColumns = () => {
+        delete payload.trip_type;
+        delete payload.sort_order;
+      };
 
       let tripId = item.id;
 
       if (tripId) {
         let { error } = await supabase.from("trips").update(payload).eq("id", tripId);
-        if (error && /trip_type/i.test(error.message ?? "")) {
-          delete payload.trip_type;
+        if (error && optionalColumnsRe.test(error.message ?? "")) {
+          stripOptionalColumns();
           ({ error } = await supabase.from("trips").update(payload).eq("id", tripId));
         }
         assertNoError(error);
       } else {
         let { data, error } = await supabase.from("trips").insert(payload).select("id").single();
-        if (error && /trip_type/i.test(error.message ?? "")) {
-          delete payload.trip_type;
+        if (error && optionalColumnsRe.test(error.message ?? "")) {
+          stripOptionalColumns();
           ({ data, error } = await supabase.from("trips").insert(payload).select("id").single());
         }
         assertNoError(error);
@@ -685,7 +706,28 @@ export function useAdminTripMutations() {
     onSuccess: invalidate,
   });
 
-  return { save, remove };
+  /** Persist website position: sort_order = index of each trip in the given list */
+  const reorder = useMutation({
+    mutationFn: async (ordered: Pick<Trip, "id">[]) => {
+      if (useMockCms()) {
+        const store = getAdminMockStore();
+        ordered.forEach((t, i) => {
+          const idx = store.trips.findIndex((x) => x.id === t.id);
+          if (idx >= 0) store.trips[idx] = { ...store.trips[idx], sort_order: i };
+        });
+        return;
+      }
+      const results = await Promise.all(
+        ordered.map((t, i) =>
+          supabase.from("trips").update({ sort_order: i }).eq("id", t.id)
+        )
+      );
+      for (const { error } of results) assertNoError(error);
+    },
+    onSuccess: invalidate,
+  });
+
+  return { save, remove, reorder };
 }
 
 export function useAdminBookings() {
@@ -1036,6 +1078,115 @@ export function useAdminReviewMutations() {
   return { updateStatus };
 }
 
+export function useAdminInstagramPosts() {
+  return useQuery({
+    queryKey: adminKeys.instagram,
+    queryFn: async () => {
+      if (useMockCms()) {
+        return [...getAdminMockStore().instagramPosts].sort(
+          (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
+        );
+      }
+      const { data, error } = await supabase
+        .from("instagram_posts")
+        .select("*")
+        .order("sort_order");
+      assertNoError(error);
+      return (data as InstagramPost[]) ?? [];
+    },
+  });
+}
+
+export function useAdminInstagramMutations() {
+  const qc = useQueryClient();
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: adminKeys.instagram });
+    qc.invalidateQueries({ queryKey: ["instagram-posts"] });
+  };
+
+  const save = useMutation({
+    mutationFn: async (item: Partial<InstagramPost> & { id?: string; image_url: string }) => {
+      if (useMockCms()) {
+        const store = getAdminMockStore();
+        if (item.id) {
+          const idx = store.instagramPosts.findIndex((p) => p.id === item.id);
+          if (idx >= 0) {
+            store.instagramPosts[idx] = { ...store.instagramPosts[idx], ...item } as InstagramPost;
+          }
+        } else {
+          store.instagramPosts.push({
+            id: mockId("insta"),
+            permalink: item.permalink ?? "",
+            subtitle: item.subtitle ?? null,
+            caption: item.caption ?? null,
+            image_url: item.image_url,
+            sort_order: item.sort_order ?? store.instagramPosts.length,
+            is_visible: item.is_visible ?? true,
+          });
+        }
+        return;
+      }
+
+      const payload = {
+        permalink: item.permalink ?? "",
+        subtitle: item.subtitle || null,
+        caption: item.caption || null,
+        image_url: item.image_url,
+        is_visible: item.is_visible ?? true,
+        ...(typeof item.sort_order === "number" ? { sort_order: item.sort_order } : {}),
+      };
+
+      if (item.id) {
+        const { error } = await supabase
+          .from("instagram_posts")
+          .update(payload)
+          .eq("id", item.id);
+        assertNoError(error);
+      } else {
+        const { error } = await supabase.from("instagram_posts").insert(payload);
+        assertNoError(error);
+      }
+    },
+    onSuccess: invalidate,
+  });
+
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      if (useMockCms()) {
+        const store = getAdminMockStore();
+        store.instagramPosts = store.instagramPosts.filter((p) => p.id !== id);
+        return;
+      }
+      const { error } = await supabase.from("instagram_posts").delete().eq("id", id);
+      assertNoError(error);
+    },
+    onSuccess: invalidate,
+  });
+
+  /** Persist position: sort_order = index of each post in the given list */
+  const reorder = useMutation({
+    mutationFn: async (ordered: Pick<InstagramPost, "id">[]) => {
+      if (useMockCms()) {
+        const store = getAdminMockStore();
+        ordered.forEach((p, i) => {
+          const idx = store.instagramPosts.findIndex((x) => x.id === p.id);
+          if (idx >= 0) store.instagramPosts[idx] = { ...store.instagramPosts[idx], sort_order: i };
+        });
+        return;
+      }
+      const results = await Promise.all(
+        ordered.map((p, i) =>
+          supabase.from("instagram_posts").update({ sort_order: i }).eq("id", p.id)
+        )
+      );
+      for (const { error } of results) assertNoError(error);
+    },
+    onSuccess: invalidate,
+  });
+
+  return { save, remove, reorder };
+}
+
 export function useAdminTestimonials() {
   return useQuery({
     queryKey: adminKeys.testimonials,
@@ -1314,7 +1465,7 @@ export function useAdminSettingsMutations() {
         return;
       }
 
-      const payload = {
+      const payload: Record<string, unknown> = {
         id: 1,
         site_name: settings.site_name,
         logo_url: settings.logo_url,
@@ -1331,10 +1482,17 @@ export function useAdminSettingsMutations() {
         seo_default_description: settings.seo_default_description,
         payment_razorpay_key: settings.payment_razorpay_key || null,
         home_marquee_text: settings.home_marquee_text || null,
+        about_founder_image: settings.about_founder_image || null,
         updated_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase.from("settings").upsert(payload, { onConflict: "id" });
+      let { error } = await supabase.from("settings").upsert(payload, { onConflict: "id" });
+      // Newer columns may be missing on older DBs — retry without them
+      if (error && /about_founder_image|home_marquee_text/i.test(error.message ?? "")) {
+        delete payload.about_founder_image;
+        delete payload.home_marquee_text;
+        ({ error } = await supabase.from("settings").upsert(payload, { onConflict: "id" }));
+      }
       assertNoError(error);
     },
     onSuccess: () => {
@@ -1343,7 +1501,54 @@ export function useAdminSettingsMutations() {
     },
   });
 
-  return { save };
+  const updateAdminPanelPassword = useMutation({
+    mutationFn: async ({
+      currentPassword,
+      newPassword,
+    }: {
+      currentPassword: string;
+      newPassword: string;
+    }) => {
+      const {
+        hashAdminPassword,
+        verifyAdminPanelPassword,
+        writeLocalHash,
+      } = await import("@/lib/admin-panel-auth");
+
+      const ok = await verifyAdminPanelPassword(currentPassword);
+      if (!ok) throw new Error("Current password is incorrect");
+
+      if (newPassword.length < 6) {
+        throw new Error("New password must be at least 6 characters");
+      }
+
+      const newHash = await hashAdminPassword(newPassword);
+      writeLocalHash(newHash);
+
+      if (useMockCms() || !isSupabaseConfigured) {
+        return;
+      }
+
+      const { error } = await supabase
+        .from("settings")
+        .update({
+          admin_panel_password_hash: newHash,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", 1);
+
+      if (error) {
+        if (/admin_panel_password_hash|column/i.test(error.message ?? "")) {
+          throw new Error(
+            "Run supabase/migrations/018_admin_panel_password.sql in the Supabase SQL editor first."
+          );
+        }
+        assertNoError(error);
+      }
+    },
+  });
+
+  return { save, updateAdminPanelPassword };
 }
 
 export function useAdminMedia() {

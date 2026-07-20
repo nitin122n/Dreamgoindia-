@@ -176,7 +176,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signInAdminPanel = async (email: string, password: string) => {
-    if (!isAdminPanelCredentials(email, password)) {
+    if (!(await isAdminPanelCredentials(email, password))) {
       return { error: new Error("Invalid admin email or password") };
     }
 

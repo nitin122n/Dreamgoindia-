@@ -27,6 +27,7 @@ import {
   Database,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { InstagramIcon } from "@/components/common/SocialIcons";
 import { Logo } from "@/components/common/Logo";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -55,6 +56,7 @@ const navItems = [
   { label: "FAQs", path: "/admin/faqs", icon: HelpCircle },
   { label: "Hero Slider", path: "/admin/hero", icon: ImageIcon },
   { label: "Story Highlights", path: "/admin/highlights", icon: Circle },
+  { label: "Instagram", path: "/admin/instagram", icon: InstagramIcon },
   { label: "Destinations", path: "/admin/destinations", icon: MapPin },
   { label: "Coupons", path: "/admin/coupons", icon: Ticket },
   { label: "Newsletter", path: "/admin/newsletter", icon: Mail },

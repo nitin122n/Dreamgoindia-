@@ -119,6 +119,8 @@ export interface Trip {
   seo_description: string | null;
   /** Detailed itinerary PDF (uploaded in admin) */
   itinerary_pdf_url: string | null;
+  /** Homepage position — lower number shows first (admin-managed) */
+  sort_order: number;
   created_at: string;
   trip_images?: TripImage[];
   destination?: Destination;
@@ -195,6 +197,17 @@ export interface Testimonial {
   image_url: string | null;
   video_url: string | null;
   trip_name: string | null;
+  sort_order: number;
+  is_visible: boolean;
+}
+
+/** Homepage “Instagram images” card (managed in Admin → Instagram) */
+export interface InstagramPost {
+  id: string;
+  permalink: string;
+  subtitle: string | null;
+  caption: string | null;
+  image_url: string;
   sort_order: number;
   is_visible: boolean;
 }
@@ -313,6 +326,8 @@ export interface SiteSettings {
   payment_razorpay_key: string;
   /** Scrolling banner under story highlights on the homepage */
   home_marquee_text: string;
+  /** Founder photo shown on the About page */
+  about_founder_image: string;
 }
 
 export interface WhyChooseUs {
