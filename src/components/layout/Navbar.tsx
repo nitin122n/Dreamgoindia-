@@ -58,7 +58,7 @@ export function Navbar() {
         )}
       >
         <div className="container mx-auto flex h-14 items-center justify-between px-4 sm:h-16 lg:h-20 lg:px-8">
-          <Logo variant={isTransparent ? "white" : "default"} />
+          <Logo variant="default" />
 
           {/* Desktop nav */}
           <nav className="hidden items-center gap-6 xl:flex">

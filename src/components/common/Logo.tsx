@@ -28,9 +28,11 @@ export function Logo({ className, showText = true, variant = "default", to = "/"
   const logoUrl = settings.logo_url?.trim() || "";
   const hasCustomLogo = Boolean(logoUrl && logoUrl !== "/logo.svg");
 
-  const parts = settings.site_name.trim().split(/\s+/);
-  const brandLine = parts.slice(0, Math.max(parts.length - 1, 1)).join(" ") || "Dream Go";
-  const accentLine = parts.length > 1 ? parts[parts.length - 1] : "India";
+  const name = settings.site_name.trim() || "Dream Go India";
+  const parts = name.split(/\s+/);
+  const brandStart = parts.slice(0, Math.max(parts.length - 1, 1)).join(" ");
+  const brandAccent = parts.length > 1 ? parts[parts.length - 1] : "";
+  const tagline = "Experience the difference";
 
   return (
     <Link to={to} className={cn("inline-flex items-center gap-2.5", className)} aria-label={settings.site_name}>
@@ -47,11 +49,17 @@ export function Logo({ className, showText = true, variant = "default", to = "/"
       )}
       {showText && (
         <div className="flex flex-col items-start justify-center leading-none">
-          <span className={cn("text-sm font-bold", isWhite ? "text-white" : "text-gray-900")}>
-            {brandLine}
+          <span className={cn("whitespace-nowrap text-sm font-bold", isWhite ? "text-white" : "text-gray-900")}>
+            {brandStart}
+            {brandAccent && <span className="text-primary"> {brandAccent}</span>}
           </span>
-          <span className={cn("mt-0.5 text-xs font-semibold", isWhite ? "text-white/80" : "text-primary")}>
-            {accentLine}
+          <span
+            className={cn(
+              "mt-0.5 whitespace-nowrap text-[11px] font-semibold",
+              isWhite ? "text-white/85" : "text-gray-900"
+            )}
+          >
+            {tagline}
           </span>
         </div>
       )}

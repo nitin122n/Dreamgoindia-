@@ -196,20 +196,27 @@ export default function AboutPage() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="relative mx-auto w-full max-w-md lg:mx-0"
+              className="relative mx-auto w-full max-w-sm text-center lg:mx-0"
             >
-              <div className="pointer-events-none absolute -inset-3 rounded-[1.75rem] bg-gradient-to-br from-primary/30 via-primary/5 to-transparent blur-sm" />
-              <div className="relative overflow-hidden rounded-[1.5rem] border border-gray-200 shadow-xl dark:border-white/10">
-                <img
-                  src={founderImage}
-                  alt="Sanoj Chauhan — founder of Dream Go India"
-                  className="aspect-[4/5] w-full object-cover object-[center_18%]"
+              <div className="relative mx-auto aspect-square w-64 sm:w-80">
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute -inset-4 rounded-full bg-gradient-to-br from-primary/25 via-primary/5 to-transparent blur-md"
                 />
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent px-5 pb-5 pt-16">
-                  <p className="text-lg font-bold text-white">Sanoj Chauhan</p>
-                  <p className="text-sm text-white/80">Founder · Mountaineer · Explorer</p>
+                <div className="relative h-full w-full overflow-hidden rounded-full border-4 border-white shadow-xl ring-1 ring-gray-200 dark:border-gray-900 dark:ring-white/10">
+                  <img
+                    src={founderImage}
+                    alt="Sanoj Chauhan — founder of Dream Go India"
+                    className="h-full w-full object-cover object-[center_18%]"
+                  />
                 </div>
               </div>
+              <p className="mt-6 font-display text-2xl font-semibold tracking-wide text-gray-900 dark:text-white sm:text-3xl">
+                Sanoj Chauhan
+              </p>
+              <p className="mt-1.5 text-sm uppercase tracking-[0.22em] text-gray-500 dark:text-gray-400">
+                Founder · Mountaineer · Explorer
+              </p>
             </motion.div>
 
             <motion.div
@@ -221,7 +228,7 @@ export default function AboutPage() {
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">
                 Meet the founder
               </p>
-              <h2 className="mt-2 text-3xl font-bold text-gray-900 dark:text-white md:text-4xl">
+              <h2 className="mt-2 font-display text-3xl font-bold text-gray-900 dark:text-white md:text-4xl">
                 Sanoj Chauhan
               </h2>
               <p className="mt-3 text-lg font-medium text-gray-700 dark:text-gray-200">
