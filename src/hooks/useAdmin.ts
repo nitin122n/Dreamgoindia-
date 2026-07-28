@@ -1480,7 +1480,6 @@ export function useAdminSettingsMutations() {
         google_analytics_id: settings.google_analytics_id,
         seo_default_title: settings.seo_default_title,
         seo_default_description: settings.seo_default_description,
-        payment_razorpay_key: settings.payment_razorpay_key || null,
         home_marquee_text: settings.home_marquee_text || null,
         about_founder_image: settings.about_founder_image || null,
         updated_at: new Date().toISOString(),

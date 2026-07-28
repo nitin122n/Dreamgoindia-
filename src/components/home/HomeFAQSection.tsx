@@ -81,15 +81,15 @@ export function HomeFAQSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.05 }}
-          className="rounded-2xl border border-gray-200 bg-white px-4 sm:px-6"
+          className="rounded-2xl border border-gray-200 bg-white px-4 text-gray-900 sm:px-6 dark:border-gray-200 dark:bg-white dark:text-gray-900"
         >
           <Accordion type="single" collapsible className="w-full">
             {items.map((item) => (
               <AccordionItem key={item.id} value={item.id} className="border-gray-200">
-                <AccordionTrigger className="py-5 text-base font-medium text-gray-900 hover:text-primary hover:no-underline">
+                <AccordionTrigger className="py-5 text-base font-medium text-primary hover:text-primary-dark hover:no-underline dark:text-primary">
                   {item.question}
                 </AccordionTrigger>
-                <AccordionContent className="pb-5 text-[15px] leading-relaxed text-gray-600">
+                <AccordionContent className="pb-5 text-[15px] leading-relaxed text-gray-700 dark:text-gray-700">
                   {item.answer}
                 </AccordionContent>
               </AccordionItem>

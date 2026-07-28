@@ -322,8 +322,6 @@ export interface SiteSettings {
   google_analytics_id: string;
   seo_default_title: string;
   seo_default_description: string;
-  /** Razorpay Key ID (rzp_test_… or rzp_live_…) — safe for client checkout */
-  payment_razorpay_key: string;
   /** Scrolling banner under story highlights on the homepage */
   home_marquee_text: string;
   /** Founder photo shown on the About page */

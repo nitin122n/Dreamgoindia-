@@ -38,7 +38,6 @@ function toFormValues(settings: SiteSettings): SettingsFormValues {
     seo_default_title: settings.seo_default_title,
     seo_default_description: settings.seo_default_description,
     google_analytics_id: settings.google_analytics_id ?? "",
-    payment_razorpay_key: settings.payment_razorpay_key ?? "",
     home_marquee_text: settings.home_marquee_text ?? "",
     about_founder_image: settings.about_founder_image ?? "",
   };
@@ -278,21 +277,6 @@ export default function AdminSettingsPage() {
               />
             </FormField>
           ))}
-        </ComponentCard>
-
-        <ComponentCard title="Payments" description="Razorpay checkout for trip bookings">
-          <FormField
-            label="Razorpay Key ID"
-            htmlFor="payment_razorpay_key"
-            hint="From Razorpay Dashboard → API Keys (rzp_test_… or rzp_live_…). Also set VITE_RAZORPAY_KEY_ID in .env as fallback."
-          >
-            <Input
-              id="payment_razorpay_key"
-              className={adminInputClass}
-              placeholder="rzp_test_xxxxxxxx"
-              {...register("payment_razorpay_key")}
-            />
-          </FormField>
         </ComponentCard>
 
         <ComponentCard title="SEO" description="Default meta tags and analytics">

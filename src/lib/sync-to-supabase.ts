@@ -32,7 +32,6 @@ export async function syncWebsiteContentToSupabase(): Promise<{ ok: boolean; mes
       social_links: store.settings.social_links,
       footer_text: store.settings.footer_text,
       google_analytics_id: store.settings.google_analytics_id,
-      payment_razorpay_key: store.settings.payment_razorpay_key || null,
       home_marquee_text: store.settings.home_marquee_text || null,
       about_founder_image: store.settings.about_founder_image || null,
       seo_default_title: store.settings.seo_default_title,

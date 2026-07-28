@@ -23,7 +23,6 @@ export const settingsFormSchema = z.object({
   seo_default_title: z.string().min(1, "SEO title is required"),
   seo_default_description: z.string().min(1, "SEO description is required"),
   google_analytics_id: z.string(),
-  payment_razorpay_key: z.string(),
   home_marquee_text: z.string(),
   about_founder_image: z.string(),
 });

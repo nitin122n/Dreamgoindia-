@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,12 +9,11 @@ import {
   ChevronRight,
   ChevronLeft,
   User,
-  CreditCard,
   Ticket,
   PartyPopper,
   Plus,
   Trash2,
-  Loader2,
+  MessageCircle,
   ShieldCheck,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -28,9 +27,7 @@ import { useTrip } from "@/hooks/useCMS";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import { formatPrice } from "@/lib/utils";
-import { openRazorpayCheckout, toPaise } from "@/lib/razorpay";
-import { createPaidBooking } from "@/lib/bookings";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { buildWhatsAppUrl, resolveWhatsAppNumber } from "@/lib/whatsapp";
 
 const travelerSchema = z.object({
   name: z.string().min(2, "Name required"),
@@ -51,8 +48,8 @@ type BookingFormValues = z.infer<typeof bookingSchema>;
 const STEPS = [
   { id: 1, title: "Travelers", icon: User },
   { id: 2, title: "Coupon", icon: Ticket },
-  { id: 3, title: "Payment", icon: CreditCard },
-  { id: 4, title: "Confirm", icon: PartyPopper },
+  { id: 3, title: "WhatsApp", icon: MessageCircle },
+  { id: 4, title: "Done", icon: PartyPopper },
 ];
 
 const VALID_COUPONS: Record<string, number> = {
@@ -60,21 +57,21 @@ const VALID_COUPONS: Record<string, number> = {
   WELCOME500: 500,
 };
 
+function WhatsAppIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+    </svg>
+  );
+}
+
 export default function BookingPage() {
   const { slug } = useParams<{ slug: string }>();
-  const navigate = useNavigate();
   const { data: trip, isLoading } = useTrip(slug ?? "");
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const { settings } = useSettings();
   const [step, setStep] = useState(1);
   const [discount, setDiscount] = useState(0);
-  const [bookingNumber, setBookingNumber] = useState("");
-  const [paying, setPaying] = useState(false);
-  const [paymentId, setPaymentId] = useState("");
-  const [paymentVerified, setPaymentVerified] = useState(false);
-  const [bookingStatusLabel, setBookingStatusLabel] = useState<"confirmed" | "pending">(
-    "confirmed"
-  );
 
   const {
     register,
@@ -93,10 +90,11 @@ export default function BookingPage() {
 
   const { fields, append, remove } = useFieldArray({ control, name: "travelers" });
 
-  const razorpayKey =
-    settings.payment_razorpay_key?.trim() ||
-    (import.meta.env.VITE_RAZORPAY_KEY_ID as string | undefined)?.trim() ||
-    "";
+  const whatsappNumber = resolveWhatsAppNumber({
+    whatsapp: settings.whatsapp,
+    contactPhone: settings.contact_phone,
+    envNumber: import.meta.env.VITE_WHATSAPP_NUMBER as string | undefined,
+  });
 
   if (isLoading) {
     return (
@@ -138,119 +136,50 @@ export default function BookingPage() {
     }
   };
 
-  const payWithRazorpay = async (values: BookingFormValues) => {
-    if (!trip) return;
+  const buildBookingMessage = (values: BookingFormValues) => {
+    const siteName = settings.site_name || "Dream Go India";
+    const lines: string[] = [
+      `Hi ${siteName}! I'd like to book a trip. 🏔`,
+      "",
+      `*Trip:* ${trip.title}`,
+      `*Duration:* ${trip.duration_days}D / ${trip.duration_nights}N`,
+    ];
+    if (trip.location) lines.push(`*Location:* ${trip.location}`);
 
-    if (!user) {
-      toast.error("Please sign in to book");
-      navigate("/auth/login", { state: { from: { pathname: `/trips/${slug}/book` } } });
+    lines.push("", `*Travelers (${values.travelers.length}):*`);
+    values.travelers.forEach((t, i) => {
+      const contact = t.phone ? ` — ${t.phone}` : "";
+      lines.push(`${i + 1}. ${t.name}, ${t.age} (${t.gender})${contact}`);
+    });
+
+    const code = values.couponCode?.trim().toUpperCase();
+    if (discount > 0 && code) {
+      lines.push("", `*Coupon:* ${code} (−${formatPrice(discount)})`);
+    }
+
+    lines.push(
+      "",
+      `*Price per person:* ${formatPrice(basePrice)}`,
+      `*Total:* ${formatPrice(total)}`
+    );
+
+    if (values.specialRequests?.trim()) {
+      lines.push("", `*Special requests:* ${values.specialRequests.trim()}`);
+    }
+
+    lines.push("", "Please confirm availability and share the payment details. Thank you!");
+    return lines.join("\n");
+  };
+
+  const bookOnWhatsApp = (values: BookingFormValues) => {
+    if (!whatsappNumber) {
+      toast.error("WhatsApp number is not configured. Add it in Admin → Settings → Contact.");
       return;
     }
-
-    if (!razorpayKey) {
-      toast.error("Razorpay is not configured. Add your Key ID in Admin → Settings → Payments.");
-      return;
-    }
-
-    if (total <= 0) {
-      toast.error("Invalid payment amount");
-      return;
-    }
-
-    setPaying(true);
-
-    try {
-      let orderId: string | undefined;
-
-      // Prefer order-based checkout (enables signature verification)
-      if (isSupabaseConfigured) {
-        try {
-          const { data, error } = await supabase.functions.invoke("razorpay-create-order", {
-            body: {
-              amount: toPaise(total),
-              currency: "INR",
-              receipt: `trip_${trip.slug}_${Date.now()}`,
-              notes: { trip_id: trip.id, trip_title: trip.title, user_id: user.id },
-            },
-          });
-          if (!error && data?.order?.id) {
-            orderId = String(data.order.id);
-          }
-        } catch {
-          // Checkout can still run; verification uses payment API fetch
-        }
-      }
-
-      const lead = values.travelers[0];
-      const opened = await openRazorpayCheckout({
-        key: razorpayKey,
-        amount: toPaise(total),
-        currency: "INR",
-        name: settings.site_name || "Dream Go India",
-        description: trip.title,
-        order_id: orderId,
-        prefill: {
-          name: lead?.name || profile?.full_name || "",
-          email: lead?.email || user.email || "",
-          contact: lead?.phone || profile?.phone || settings.contact_phone || "",
-        },
-        notes: {
-          trip_id: trip.id,
-          trip_slug: trip.slug,
-          user_id: user.id,
-        },
-        theme: { color: settings.primary_color || "#E53935" },
-        handler: async (response) => {
-          try {
-            toast.loading("Verifying payment…", { id: "pay-verify" });
-            const result = await createPaidBooking({
-              userId: user.id,
-              tripId: trip.id,
-              travelers: values.travelers,
-              totalAmount: total,
-              discountAmount: discount,
-              specialRequests: values.specialRequests,
-              payment: response,
-            });
-            setBookingNumber(result.bookingNumber);
-            setPaymentId(response.razorpay_payment_id);
-            setPaymentVerified(result.verified);
-            setBookingStatusLabel(result.bookingStatus);
-            setStep(4);
-            if (result.verified) {
-              toast.success("Payment verified! Booking confirmed.", { id: "pay-verify" });
-            } else {
-              toast.success("Booking saved — payment pending verification.", {
-                id: "pay-verify",
-              });
-            }
-          } catch (e) {
-            console.error(e);
-            toast.error(
-              (e as Error).message ||
-                "Payment could not be verified. Contact support with your payment ID.",
-              { id: "pay-verify" }
-            );
-          } finally {
-            setPaying(false);
-          }
-        },
-        modal: {
-          ondismiss: () => {
-            setPaying(false);
-            toast("Payment cancelled", { icon: "ℹ️" });
-          },
-        },
-      });
-
-      if (opened === "failed") {
-        toast.error("Could not load Razorpay. Check your connection and try again.");
-        setPaying(false);
-      }
-    } catch (e) {
-      toast.error((e as Error).message || "Payment failed to start");
-      setPaying(false);
-    }
+    const url = buildWhatsAppUrl(whatsappNumber, buildBookingMessage(values));
+    window.open(url, "_blank", "noopener,noreferrer");
+    setStep(4);
+    toast.success("Opening WhatsApp with your booking details…");
   };
 
   return (
@@ -387,60 +316,52 @@ export default function BookingPage() {
                 >
                   <Card>
                     <CardContent className="p-6">
-                      <h2 className="mb-6 text-xl font-bold">Payment</h2>
-                      <div className="rounded-xl border border-gray-200 bg-gradient-to-br from-primary/5 to-orange-50 p-6">
+                      <h2 className="mb-6 text-xl font-bold">Book via WhatsApp</h2>
+                      <div className="rounded-xl border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-6">
                         <div className="mb-4 flex items-center gap-3">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-                            <CreditCard className="h-6 w-6" />
+                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#25D366]/15 text-[#25D366]">
+                            <WhatsAppIcon className="h-6 w-6" />
                           </div>
                           <div>
-                            <p className="font-semibold text-gray-900">Pay securely with Razorpay</p>
-                            <p className="text-sm text-gray-500">UPI · Cards · Net Banking · Wallets</p>
+                            <p className="font-semibold text-gray-900">Confirm your booking on WhatsApp</p>
+                            <p className="text-sm text-gray-500">
+                              Your trip and traveler details will be sent to our team
+                            </p>
                           </div>
                         </div>
 
                         <div className="mb-4 rounded-xl bg-white p-4">
                           <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-500">Amount to pay</span>
+                            <span className="text-gray-500">Estimated total</span>
                             <span className="text-xl font-bold text-primary">{formatPrice(total)}</span>
                           </div>
                         </div>
 
-                        <div className="mb-4 flex flex-wrap gap-2">
-                          {["UPI", "Card", "Net Banking", "Wallet"].map((m) => (
-                            <span
-                              key={m}
-                              className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-gray-600 shadow-sm"
-                            >
-                              {m}
-                            </span>
-                          ))}
-                        </div>
+                        <ul className="mb-4 space-y-2 text-sm text-gray-600">
+                          <li className="flex items-start gap-2">
+                            <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-600" />
+                            Tap the button below — WhatsApp opens with your booking details pre-filled
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-600" />
+                            Our team confirms availability and batch dates with you
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-600" />
+                            Pay securely only after confirmation — UPI or bank transfer
+                          </li>
+                        </ul>
 
-                        {!user && (
-                          <p className="mb-3 text-sm text-amber-700">
-                            You need to{" "}
-                            <Link
-                              to="/auth/login"
-                              state={{ from: { pathname: `/trips/${slug}/book` } }}
-                              className="font-semibold underline"
-                            >
-                              login
-                            </Link>{" "}
-                            before paying.
-                          </p>
-                        )}
-
-                        {!razorpayKey && (
+                        {!whatsappNumber && (
                           <p className="mb-3 text-sm text-red-600">
-                            Razorpay Key ID missing. Add it in Admin → Settings → Payments (or
-                            VITE_RAZORPAY_KEY_ID in .env).
+                            WhatsApp number missing. Add it in Admin → Settings → Contact (or
+                            VITE_WHATSAPP_NUMBER in .env).
                           </p>
                         )}
 
                         <p className="flex items-center gap-1.5 text-xs text-gray-500">
                           <ShieldCheck className="h-3.5 w-3.5 text-green-600" />
-                          100% secure checkout powered by Razorpay
+                          No advance payment on the website — book directly with our team
                         </p>
                       </div>
                     </CardContent>
@@ -457,50 +378,36 @@ export default function BookingPage() {
                   <Card>
                     <CardContent className="p-8 text-center">
                       <PartyPopper className="mx-auto mb-4 h-16 w-16 text-primary" />
-                      <h2 className="text-2xl font-bold text-gray-900">
-                        {paymentVerified ? "Booking Confirmed!" : "Booking Received"}
+                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        Booking Request Sent!
                       </h2>
-                      <p className="mt-2 text-gray-600">
-                        {paymentVerified
-                          ? "Payment verified successfully. Your adventure awaits."
-                          : "Your booking is saved. Payment status is pending verification."}
+                      <p className="mt-2 text-gray-600 dark:text-gray-300">
+                        Your details have been shared on WhatsApp. Our team will reply shortly to
+                        confirm availability and guide you through the payment.
                       </p>
-                      <div className="mt-6 space-y-3">
-                        <div className="rounded-xl bg-primary/5 p-4">
-                          <p className="text-sm text-gray-500">Booking Number</p>
-                          <p className="text-xl font-bold text-primary">{bookingNumber}</p>
-                        </div>
-                        <div className="grid gap-3 sm:grid-cols-2">
-                          <div className="rounded-xl bg-gray-50 p-4">
-                            <p className="text-sm text-gray-500">Booking status</p>
-                            <p className="text-sm font-semibold capitalize text-gray-800">
-                              {bookingStatusLabel}
-                            </p>
-                          </div>
-                          <div className="rounded-xl bg-gray-50 p-4">
-                            <p className="text-sm text-gray-500">Payment status</p>
-                            <p
-                              className={`text-sm font-semibold ${
-                                paymentVerified ? "text-green-700" : "text-amber-700"
-                              }`}
-                            >
-                              {paymentVerified ? "Paid (verified)" : "Pending verification"}
-                            </p>
-                          </div>
-                        </div>
-                        {paymentId && (
-                          <div className="rounded-xl bg-gray-50 p-4">
-                            <p className="text-sm text-gray-500">Razorpay Payment ID</p>
-                            <p className="break-all text-sm font-semibold text-gray-800">{paymentId}</p>
-                          </div>
-                        )}
+                      <div className="mt-6 rounded-xl bg-green-50 p-4 text-left">
+                        <p className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                          <WhatsAppIcon className="h-4 w-4 text-[#25D366]" />
+                          Didn&apos;t see WhatsApp open?
+                        </p>
+                        <p className="mt-1 text-sm text-gray-600">
+                          Pop-ups may be blocked. Tap the button below to open the chat again.
+                        </p>
+                        <Button
+                          type="button"
+                          className="mt-3 bg-[#25D366] text-white hover:bg-[#1ebe57]"
+                          onClick={handleSubmit(bookOnWhatsApp)}
+                        >
+                          <WhatsAppIcon className="h-4 w-4" />
+                          Reopen WhatsApp
+                        </Button>
                       </div>
                       <div className="mt-6 flex justify-center gap-4">
-                        <Link to="/dashboard">
-                          <Button>View My Bookings</Button>
-                        </Link>
                         <Link to="/trips">
                           <Button variant="outline">Browse More Trips</Button>
+                        </Link>
+                        <Link to="/">
+                          <Button variant="outline">Back to Home</Button>
                         </Link>
                       </div>
                     </CardContent>
@@ -519,32 +426,23 @@ export default function BookingPage() {
                   <ChevronLeft className="h-4 w-4" />
                   Back
                 </Button>
-                <Button
-                  disabled={paying || (step === 3 && (!razorpayKey || total <= 0))}
-                  onClick={
-                    step === 3
-                      ? handleSubmit(payWithRazorpay)
-                      : step === 1
-                        ? handleSubmit(() => setStep(2))
-                        : () => setStep(3)
-                  }
-                >
-                  {step === 3 ? (
-                    paying ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Opening Razorpay…
-                      </>
-                    ) : (
-                      <>Pay {formatPrice(total)}</>
-                    )
-                  ) : (
-                    <>
-                      Continue
-                      <ChevronRight className="h-4 w-4" />
-                    </>
-                  )}
-                </Button>
+                {step === 3 ? (
+                  <Button
+                    disabled={!whatsappNumber}
+                    className="bg-[#25D366] text-white hover:bg-[#1ebe57]"
+                    onClick={handleSubmit(bookOnWhatsApp)}
+                  >
+                    <WhatsAppIcon className="h-4 w-4" />
+                    Book on WhatsApp
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={step === 1 ? handleSubmit(() => setStep(2)) : () => setStep(3)}
+                  >
+                    Continue
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             )}
           </div>

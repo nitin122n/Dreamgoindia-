@@ -34,9 +34,6 @@ export function mapSettingsRow(row: Record<string, unknown>): SiteSettings {
     seo_default_description: String(
       row.seo_default_description ?? defaultSettings.seo_default_description
     ),
-    payment_razorpay_key: String(
-      row.payment_razorpay_key ?? defaultSettings.payment_razorpay_key ?? ""
-    ),
     home_marquee_text: String(
       row.home_marquee_text ?? defaultSettings.home_marquee_text ?? ""
     ),

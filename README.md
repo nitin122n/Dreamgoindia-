@@ -39,7 +39,6 @@ supabase db push
 
 - `supabase/migrations/` — schema & seeds (`001`–`015`)
 - `supabase/scripts/` — optional one-time ops (CMS unlock, trips sync); run in SQL Editor if needed
-- Payments setup: see [`docs/razorpay-setup.md`](docs/razorpay-setup.md)
 
 ### 4. Start development server
 
@@ -119,9 +118,9 @@ Visit `http://localhost:5173`
 | `npm run preview` | Preview production build |
 | `npm run lint` | Run linter |
 
-## Payments (Razorpay)
+## Bookings
 
-See [`docs/razorpay-setup.md`](docs/razorpay-setup.md) for Key ID, edge functions, and verification.
+Bookings are handled via WhatsApp — the booking flow collects traveler details and opens a pre-filled WhatsApp chat with the team (number set in Admin → Settings or `VITE_WHATSAPP_NUMBER`).
 
 ## Deployment
 

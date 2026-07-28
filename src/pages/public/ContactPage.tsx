@@ -34,6 +34,12 @@ const contactSchema = z.object({
 
 type ContactFormValues = z.infer<typeof contactSchema>;
 
+/** Keep form fields light on white cards even when site dark mode is on */
+const lightFieldClass =
+  "border-gray-300 bg-white text-gray-900 caret-gray-900 shadow-sm placeholder:text-gray-400 focus:border-primary dark:border-gray-300 dark:bg-white dark:text-gray-900 dark:caret-gray-900 dark:placeholder:text-gray-400";
+
+const lightLabelClass = "font-semibold text-primary dark:text-primary";
+
 export default function ContactPage() {
   const { settings } = useSettings();
   const { data: faqs } = useFAQs("booking");
@@ -92,36 +98,59 @@ export default function ContactPage() {
       <section className="container mx-auto px-4 py-12">
         <div className="grid gap-10 lg:grid-cols-2">
           <div>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 rounded-2xl bg-white p-8 premium-shadow">
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="space-y-4 rounded-2xl border border-gray-200 bg-white p-8 text-gray-900 premium-shadow dark:border-gray-200 dark:bg-white dark:text-gray-900"
+            >
               <h2 className="text-xl font-bold text-gray-900">Send us a message</h2>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input id="name" {...register("name")} />
+                  <Label htmlFor="name" className={lightLabelClass}>
+                    Name
+                  </Label>
+                  <Input id="name" className={lightFieldClass} {...register("name")} />
                   {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" {...register("email")} />
+                  <Label htmlFor="email" className={lightLabelClass}>
+                    Email
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    className={lightFieldClass}
+                    {...register("email")}
+                  />
                   {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone (optional)</Label>
-                <Input id="phone" {...register("phone")} />
+                <Label htmlFor="phone" className={lightLabelClass}>
+                  Phone (optional)
+                </Label>
+                <Input id="phone" className={lightFieldClass} {...register("phone")} />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="subject">Subject</Label>
-                <Input id="subject" {...register("subject")} />
+                <Label htmlFor="subject" className={lightLabelClass}>
+                  Subject
+                </Label>
+                <Input id="subject" className={lightFieldClass} {...register("subject")} />
                 {errors.subject && <p className="text-xs text-red-500">{errors.subject.message}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="message">Message</Label>
-                <Textarea id="message" rows={5} {...register("message")} />
+                <Label htmlFor="message" className={lightLabelClass}>
+                  Message
+                </Label>
+                <Textarea
+                  id="message"
+                  rows={5}
+                  className={lightFieldClass}
+                  {...register("message")}
+                />
                 {errors.message && <p className="text-xs text-red-500">{errors.message.message}</p>}
               </div>
 
@@ -138,10 +167,10 @@ export default function ContactPage() {
                 <div className="flex items-start gap-4">
                   <Mail className="mt-1 h-5 w-5 text-primary" />
                   <div>
-                    <p className="font-semibold text-gray-900">Email</p>
+                    <p className="font-semibold text-primary">Email</p>
                     <a
                       href={`mailto:${settings.contact_email}`}
-                      className="text-sm text-gray-600 hover:text-primary"
+                      className="text-sm text-gray-800 hover:text-primary dark:text-gray-800"
                     >
                       {settings.contact_email}
                     </a>
@@ -150,10 +179,10 @@ export default function ContactPage() {
                 <div className="flex items-start gap-4">
                   <Phone className="mt-1 h-5 w-5 text-primary" />
                   <div>
-                    <p className="font-semibold text-gray-900">Phone</p>
+                    <p className="font-semibold text-primary">Phone</p>
                     <a
                       href={`tel:${settings.contact_phone}`}
-                      className="text-sm text-gray-600 hover:text-primary"
+                      className="text-sm font-semibold text-primary hover:text-primary-dark"
                     >
                       {settings.contact_phone}
                     </a>
@@ -162,8 +191,8 @@ export default function ContactPage() {
                 <div className="flex items-start gap-4">
                   <MapPin className="mt-1 h-5 w-5 text-primary" />
                   <div>
-                    <p className="font-semibold text-gray-900">Address</p>
-                    <p className="text-sm text-gray-600">{settings.address}</p>
+                    <p className="font-semibold text-primary">Address</p>
+                    <p className="text-sm text-gray-800 dark:text-gray-800">{settings.address}</p>
                   </div>
                 </div>
               </CardContent>
@@ -217,12 +246,22 @@ export default function ContactPage() {
         {/* FAQs */}
         {faqs && faqs.length > 0 && (
           <section className="mt-16">
-            <h2 className="mb-6 text-2xl font-bold text-center">Frequently Asked Questions</h2>
-            <Accordion type="single" collapsible className="mx-auto max-w-2xl rounded-2xl bg-white px-6 premium-shadow">
+            <h2 className="mb-6 text-center text-2xl font-bold text-gray-900 dark:text-white">
+              Frequently Asked Questions
+            </h2>
+            <Accordion
+              type="single"
+              collapsible
+              className="mx-auto max-w-2xl rounded-2xl border border-gray-200 bg-white px-6 text-gray-900 premium-shadow dark:border-gray-200 dark:bg-white dark:text-gray-900"
+            >
               {faqs.slice(0, 4).map((faq) => (
-                <AccordionItem key={faq.id} value={faq.id}>
-                  <AccordionTrigger>{faq.question}</AccordionTrigger>
-                  <AccordionContent>{faq.answer}</AccordionContent>
+                <AccordionItem key={faq.id} value={faq.id} className="border-gray-200">
+                  <AccordionTrigger className="text-primary hover:text-primary-dark dark:text-primary">
+                    {faq.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-gray-700 dark:text-gray-700">
+                    {faq.answer}
+                  </AccordionContent>
                 </AccordionItem>
               ))}
             </Accordion>

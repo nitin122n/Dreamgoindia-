@@ -53,11 +53,19 @@ export default function FAQPage() {
             ))}
           </div>
         ) : (
-          <Accordion type="single" collapsible className="rounded-2xl bg-white px-6 premium-shadow">
+          <Accordion
+            type="single"
+            collapsible
+            className="rounded-2xl border border-gray-200 bg-white px-6 text-gray-900 premium-shadow dark:border-gray-200 dark:bg-white dark:text-gray-900"
+          >
             {faqs?.map((faq) => (
-              <AccordionItem key={faq.id} value={faq.id}>
-                <AccordionTrigger>{faq.question}</AccordionTrigger>
-                <AccordionContent>{faq.answer}</AccordionContent>
+              <AccordionItem key={faq.id} value={faq.id} className="border-gray-200">
+                <AccordionTrigger className="text-primary hover:text-primary-dark dark:text-primary">
+                  {faq.question}
+                </AccordionTrigger>
+                <AccordionContent className="text-gray-700 dark:text-gray-700">
+                  {faq.answer}
+                </AccordionContent>
               </AccordionItem>
             ))}
           </Accordion>

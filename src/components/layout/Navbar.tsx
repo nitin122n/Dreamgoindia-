@@ -27,9 +27,6 @@ export function Navbar() {
   const navigate = useNavigate();
   const { user, profile, isAdmin } = useAuth();
 
-  const isHome = location.pathname === "/";
-  const isTransparent = isHome && !scrolled;
-
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
@@ -54,7 +51,7 @@ export function Navbar() {
       <header
         className={cn(
           "fixed top-0 z-50 w-full transition-all duration-300",
-          isTransparent ? "glass-nav-transparent" : "glass-nav premium-shadow"
+          scrolled ? "glass-nav premium-shadow" : "glass-nav"
         )}
       >
         <div className="container mx-auto flex h-14 items-center justify-between px-4 sm:h-16 lg:h-20 lg:px-8">
@@ -65,8 +62,7 @@ export function Navbar() {
             <Link
               to="/"
               className={cn(
-                "text-sm font-medium transition-colors hover:text-primary",
-                isTransparent ? "text-white/90" : "text-gray-700 dark:text-gray-200",
+                "text-sm font-medium text-black transition-colors hover:text-primary",
                 location.pathname === "/" && "text-primary"
               )}
             >
@@ -77,8 +73,7 @@ export function Navbar() {
                 key={link.href}
                 to={link.href}
                 className={cn(
-                  "text-sm font-medium transition-colors hover:text-primary",
-                  isTransparent ? "text-white/90" : "text-gray-700 dark:text-gray-200",
+                  "text-sm font-medium text-black transition-colors hover:text-primary",
                   location.pathname.startsWith(link.href) && "text-primary"
                 )}
               >
@@ -92,10 +87,7 @@ export function Navbar() {
             <button
               onClick={() => setSearchOpen(!searchOpen)}
               aria-label="Search"
-              className={cn(
-                "rounded-full p-2 transition-colors hover:bg-black/5",
-                isTransparent ? "text-white" : "text-gray-700 dark:text-gray-200"
-              )}
+              className="rounded-full p-2 text-black transition-colors hover:bg-black/5"
             >
               <Search className="h-5 w-5" />
             </button>
@@ -103,17 +95,14 @@ export function Navbar() {
             <button
               onClick={() => setMenuOpen(!menuOpen)}
               aria-label="Menu"
-              className={cn(
-                "rounded-full p-2 xl:hidden",
-                isTransparent ? "text-white" : "text-gray-700 dark:text-gray-200"
-              )}
+              className="rounded-full p-2 text-black xl:hidden"
             >
               {menuOpen ? <X className="h-5 w-5" /> : <MoreVertical className="h-5 w-5" />}
             </button>
 
             {user ? (
               <Button
-                variant={isTransparent ? "secondary" : "default"}
+                variant="default"
                 size="sm"
                 onClick={() => navigate(isAdmin ? "/admin" : "/dashboard")}
                 className="rounded-full px-4"
@@ -163,22 +152,31 @@ export function Navbar() {
             initial={{ opacity: 0, x: "100%" }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: "100%" }}
-            className="fixed inset-0 z-40 bg-white pt-16 dark:bg-gray-900 xl:hidden"
+            className="fixed inset-0 z-40 bg-white pt-16 xl:hidden"
           >
             <nav className="flex flex-col gap-1 p-4">
-              <Link to="/" className="rounded-xl px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800">
+              <Link
+                to="/"
+                className={cn(
+                  "rounded-xl px-4 py-3 text-base font-medium text-black hover:bg-gray-50",
+                  location.pathname === "/" && "text-primary"
+                )}
+              >
                 Home
               </Link>
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   to={link.href}
-                  className="rounded-xl px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800"
+                  className={cn(
+                    "rounded-xl px-4 py-3 text-base font-medium text-black hover:bg-gray-50",
+                    location.pathname.startsWith(link.href) && "text-primary"
+                  )}
                 >
                   {link.label}
                 </Link>
               ))}
-              <hr className="my-3 dark:border-gray-700" />
+              <hr className="my-3 border-gray-200" />
               {!user && (
                 <Button onClick={() => navigate("/auth/signup")} variant="outline" className="w-full">
                   Sign Up

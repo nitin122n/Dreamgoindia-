@@ -10,7 +10,6 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { DashboardRoute } from "@/components/auth/DashboardRoute";
 import { AdminRoute } from "@/components/auth/AdminRoute";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 
 // Public pages
@@ -98,14 +97,7 @@ export default function App() {
                     <Route path="trips" element={<TripsPage />} />
                     <Route path="trips/packages" element={<TripPackagesPage />} />
                     <Route path="trips/:slug" element={<TripDetailPage />} />
-                    <Route
-                      path="trips/:slug/book"
-                      element={
-                        <ProtectedRoute>
-                          <BookingPage />
-                        </ProtectedRoute>
-                      }
-                    />
+                    <Route path="trips/:slug/book" element={<BookingPage />} />
                     <Route path="destinations" element={<DestinationsPage />} />
                     <Route path="destinations/:slug" element={<DestinationDetailPage />} />
                     <Route path="about" element={<AboutPage />} />

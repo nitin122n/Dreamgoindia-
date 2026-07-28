@@ -1,13 +1,5 @@
 import { useState } from "react";
-import {
-  Plus,
-  Pencil,
-  Trash2,
-  GripVertical,
-  ChevronUp,
-  ChevronDown,
-  ImagePlus,
-} from "lucide-react";
+import { Plus, Pencil, Trash2, ImagePlus } from "lucide-react";
 import toast from "react-hot-toast";
 import { AdminFormDialog } from "@/components/admin/AdminFormDialog";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
@@ -19,6 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAdminHighlights, useAdminHighlightMutations } from "@/hooks/useAdmin";
 import { mockId } from "@/lib/admin-mock-store";
 import type { Highlight, Story } from "@/types/highlight";
@@ -46,13 +45,17 @@ export default function AdminHighlightsPage() {
 
   const sorted = [...highlights].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
 
-  const moveHighlight = async (index: number, direction: -1 | 1) => {
-    const newIndex = index + direction;
-    if (newIndex < 0 || newIndex >= sorted.length) return;
-    const reordered = [...sorted];
-    [reordered[index], reordered[newIndex]] = [reordered[newIndex], reordered[index]];
-    await reorder.mutateAsync(reordered);
-    toast.success("Order updated");
+  const setPosition = async (from: number, to: number) => {
+    if (to === from || to < 0 || to >= sorted.length) return;
+    const next = [...sorted];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    try {
+      await reorder.mutateAsync(next);
+      toast.success(`Moved to position ${to + 1}`);
+    } catch (e) {
+      toast.error((e as Error).message || "Failed to update position");
+    }
   };
 
   const openCreate = () => {
@@ -130,7 +133,27 @@ export default function AdminHighlightsPage() {
         {sorted.map((item, index) => (
           <Card key={item.id}>
             <CardContent className="flex items-center gap-4 p-4">
-              <GripVertical className="h-5 w-5 shrink-0 text-gray-400" />
+              <div className="shrink-0">
+                <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-gray-500">
+                  Position
+                </p>
+                <Select
+                  value={String(index + 1)}
+                  onValueChange={(v) => void setPosition(index, Number(v) - 1)}
+                  disabled={reorder.isPending}
+                >
+                  <SelectTrigger className="h-9 w-[72px] rounded-lg border-white/10 bg-white/5 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sorted.map((_, i) => (
+                      <SelectItem key={i} value={String(i + 1)}>
+                        {i + 1}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="h-14 w-14 shrink-0 rounded-full border-2 border-[#3a3b3c] bg-[#111] p-0.5">
                 <img
                   src={item.cover}
@@ -146,24 +169,6 @@ export default function AdminHighlightsPage() {
                 </div>
               </div>
               <div className="flex items-center gap-1">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  disabled={index === 0}
-                  onClick={() => moveHighlight(index, -1)}
-                  aria-label="Move up"
-                >
-                  <ChevronUp className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  disabled={index === sorted.length - 1}
-                  onClick={() => moveHighlight(index, 1)}
-                  aria-label="Move down"
-                >
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
                 <Button size="icon" variant="ghost" onClick={() => openEdit(item)} aria-label="Edit">
                   <Pencil className="h-4 w-4" />
                 </Button>

@@ -36,7 +36,6 @@ export const defaultSettings: SiteSettings = {
   seo_default_description:
     "Dream Go India — tour and travel company in India since 2016. Book trekking, pilgrimage, and adventure packages across India.",
   google_analytics_id: "",
-  payment_razorpay_key: "",
   home_marquee_text:
     "Welcome to Dream Go India — we welcome you to start a mesmerizing journey",
   about_founder_image: "/images/sanoj-chauhan.jpg",
