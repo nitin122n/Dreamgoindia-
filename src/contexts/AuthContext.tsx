@@ -25,7 +25,6 @@ interface AuthContextType {
     fullName: string,
     phone: string
   ) => Promise<{ error: Error | null }>;
-  signInWithGoogle: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
   updatePassword: (password: string) => Promise<{ error: Error | null }>;
@@ -218,14 +217,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error as Error | null };
   };
 
-  const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
-    return { error: error as Error | null };
-  };
-
   const signOut = async () => {
     setLocalAdminSession(false);
     if (isSupabaseConfigured) {
@@ -260,7 +251,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signInAdminPanel,
         signIn,
         signUp,
-        signInWithGoogle,
         signOut,
         resetPassword,
         updatePassword,
