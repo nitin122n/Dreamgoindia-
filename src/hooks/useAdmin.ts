@@ -680,7 +680,8 @@ export function useAdminTripMutations() {
       }
 
       if (coverUrl && tripId) {
-        await supabase.from("trip_images").delete().eq("trip_id", tripId).eq("is_cover", true);
+        // Replace all trip images so the description-page banner always updates
+        await supabase.from("trip_images").delete().eq("trip_id", tripId);
         const { error: imgError } = await supabase.from("trip_images").insert({
           trip_id: tripId,
           image_url: coverUrl,

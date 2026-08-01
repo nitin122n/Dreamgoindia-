@@ -326,7 +326,10 @@ export default function AdminOngoingTripsPage() {
             onChange={(e) => setForm({ ...form, title: e.target.value })}
           />
         </FormField>
-        <FormField label="Cover image">
+        <FormField
+          label="Trip page banner image"
+          hint="Shown as the large photo at the top of the trip description page"
+        >
           <ImageUploader
             value={form.cover_url}
             onChange={(url) => setForm({ ...form, cover_url: url })}

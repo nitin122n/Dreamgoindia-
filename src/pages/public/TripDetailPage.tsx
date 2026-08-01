@@ -92,9 +92,14 @@ export default function TripDetailPage() {
     );
   }
 
-  const images = trip.trip_images?.length
-    ? trip.trip_images
-    : [{ id: "0", trip_id: trip.id, image_url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80", alt_text: trip.title, sort_order: 0, is_cover: true }];
+  const images = [...(trip.trip_images ?? [])].sort((a, b) => {
+    if (a.is_cover !== b.is_cover) return a.is_cover ? -1 : 1;
+    return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+  });
+  const heroImage =
+    images.find((i) => i.is_cover)?.image_url ||
+    images[0]?.image_url ||
+    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80";
   const itinerary = trip.itinerary ?? [];
   const inclusions = trip.inclusions ?? [];
   const exclusions = trip.exclusions ?? [];
@@ -107,14 +112,14 @@ export default function TripDetailPage() {
       <SEO
         title={trip.seo_title ?? trip.title}
         description={trip.seo_description ?? trip.description ?? undefined}
-        image={images[0]?.image_url ?? undefined}
+        image={heroImage}
         type="article"
       />
 
       {/* Hero */}
       <section className="relative h-[50vh] min-h-[400px]">
         <img
-          src={images[0]?.image_url ?? ""}
+          src={heroImage}
           alt={trip.title}
           className="h-full w-full object-cover"
         />

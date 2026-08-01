@@ -203,7 +203,20 @@ export default function AdminTripsPage() {
                 {
                   key: "title",
                   header: "Title",
-                  cell: (t) => <span className="font-medium text-white">{t.title}</span>,
+                  cell: (t) => (
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={
+                          t.trip_images?.find((i) => i.is_cover)?.image_url ||
+                          t.trip_images?.[0]?.image_url ||
+                          ""
+                        }
+                        alt=""
+                        className="h-10 w-14 rounded-md bg-gray-100 object-cover"
+                      />
+                      <span className="font-medium text-white">{t.title}</span>
+                    </div>
+                  ),
                 },
                 {
                   key: "season",
@@ -288,7 +301,10 @@ export default function AdminTripsPage() {
           />
         </FormField>
 
-        <FormField label="Cover image">
+        <FormField
+          label="Trip page banner image"
+          hint="Shown as the large photo at the top of the trip description page"
+        >
           <ImageUploader
             value={form.cover_url}
             onChange={(url) => setForm({ ...form, cover_url: url })}
