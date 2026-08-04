@@ -57,6 +57,13 @@ export default function AuthCallbackPage() {
           return;
         }
 
+        // Password recovery → set new password
+        if (authType === "recovery") {
+          setStatus("Opening password reset...");
+          navigate("/auth/reset-password", { replace: true });
+          return;
+        }
+
         await refreshProfile();
         if (cancelled) return;
 

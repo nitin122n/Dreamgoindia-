@@ -34,9 +34,15 @@ In **Supabase → Authentication → URL Configuration**:
 - **Site URL** = `https://www.dreamgoindia.com`
 - **Redirect URLs** include:
   - `https://www.dreamgoindia.com/**`
+  - `https://www.dreamgoindia.com/auth/login`
+  - `https://www.dreamgoindia.com/auth/reset-password`
   - `http://localhost:5173/**` (for local testing)
 
 After email verification, users open [https://www.dreamgoindia.com/auth/login](https://www.dreamgoindia.com/auth/login) to sign in.
+Password reset links open [https://www.dreamgoindia.com/auth/reset-password](https://www.dreamgoindia.com/auth/reset-password).
+
+Supabase’s built-in email has a low send rate limit. If you see **email rate limit exceeded**, wait ~1 hour or set **Custom SMTP** under Authentication → Emails.
+
 ### 3. Set up Supabase database
 
 Run numbered migrations in order via Supabase Dashboard SQL Editor or CLI:

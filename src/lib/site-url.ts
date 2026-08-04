@@ -33,3 +33,8 @@ export function getAuthRedirectUrl(path: string): string {
 export function getEmailVerificationRedirectUrl(): string {
   return `${PRODUCTION_SITE_URL}/auth/login`;
 }
+
+/** Password-reset emails always open the live reset page. */
+export function getPasswordResetRedirectUrl(): string {
+  return `${PRODUCTION_SITE_URL}/auth/reset-password`;
+}

@@ -1,9 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock, Loader2, CheckCircle } from "lucide-react";
-import { useState } from "react";
 import toast from "react-hot-toast";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { SEO } from "@/components/common/SEO";
@@ -11,12 +10,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { resetPasswordSchema, type ResetPasswordFormValues } from "@/lib/validations/auth";
 
 export default function ResetPasswordPage() {
   const { updatePassword, session } = useAuth();
   const navigate = useNavigate();
   const [done, setDone] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [linkError, setLinkError] = useState(false);
 
   const {
     register,
@@ -27,9 +29,47 @@ export default function ResetPasswordPage() {
   });
 
   useEffect(() => {
-    if (!session && !window.location.hash.includes("access_token")) {
-      toast.error("Invalid or expired reset link");
-    }
+    let cancelled = false;
+
+    const prepare = async () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+        const code = params.get("code");
+        const type = (params.get("type") || hash.get("type") || "").toLowerCase();
+
+        if (code && isSupabaseConfigured) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) throw error;
+        }
+
+        const { data } = await supabase.auth.getSession();
+        if (cancelled) return;
+
+        if (data.session || hash.get("access_token") || type === "recovery") {
+          setReady(true);
+          window.history.replaceState({}, "", "/auth/reset-password");
+          return;
+        }
+
+        setLinkError(true);
+        toast.error("Invalid or expired reset link. Request a new one.");
+      } catch {
+        if (!cancelled) {
+          setLinkError(true);
+          toast.error("Invalid or expired reset link. Request a new one.");
+        }
+      }
+    };
+
+    void prepare();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (session) setReady(true);
   }, [session]);
 
   const onSubmit = async (data: ResetPasswordFormValues) => {
@@ -53,6 +93,35 @@ export default function ResetPasswordPage() {
           <Link to="/auth/login">
             <Button className="w-full">Go to Login</Button>
           </Link>
+        </div>
+      </AuthLayout>
+    );
+  }
+
+  if (linkError) {
+    return (
+      <AuthLayout title="Link Expired" subtitle="This password reset link is invalid or has expired">
+        <SEO title="Reset Password" noIndex />
+        <div className="space-y-3 text-center">
+          <Link to="/auth/forgot-password">
+            <Button className="w-full">Request a new reset link</Button>
+          </Link>
+          <Link to="/auth/login">
+            <Button variant="outline" className="w-full">
+              Back to Login
+            </Button>
+          </Link>
+        </div>
+      </AuthLayout>
+    );
+  }
+
+  if (!ready) {
+    return (
+      <AuthLayout title="Reset Password" subtitle="Preparing secure reset…">
+        <SEO title="Reset Password" noIndex />
+        <div className="flex justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </AuthLayout>
     );

@@ -8,7 +8,7 @@ import {
   ADMIN_PANEL_SESSION_KEY,
   isAdminPanelCredentials,
 } from "@/lib/admin-panel-auth";
-import { getAuthRedirectUrl, getEmailVerificationRedirectUrl } from "@/lib/site-url";
+import { getEmailVerificationRedirectUrl, getPasswordResetRedirectUrl } from "@/lib/site-url";
 
 interface AuthContextType {
   user: User | null;
@@ -231,7 +231,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const resetPassword = async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: getAuthRedirectUrl("/auth/reset-password"),
+      redirectTo: getPasswordResetRedirectUrl(),
     });
     return { error: error as Error | null };
   };
