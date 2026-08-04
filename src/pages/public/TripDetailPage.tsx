@@ -92,14 +92,13 @@ export default function TripDetailPage() {
     );
   }
 
-  const images = [...(trip.trip_images ?? [])].sort((a, b) => {
-    if (a.is_cover !== b.is_cover) return a.is_cover ? -1 : 1;
-    return (a.sort_order ?? 0) - (b.sort_order ?? 0);
-  });
-  const heroImage =
-    images.find((i) => i.is_cover)?.image_url ||
-    images[0]?.image_url ||
-    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80";
+  const coverFallback =
+    [...(trip.trip_images ?? [])].sort((a, b) => {
+      if (a.is_cover !== b.is_cover) return a.is_cover ? -1 : 1;
+      return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+    })[0]?.image_url ||
+    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1600&q=80";
+  const heroImage = trip.banner_image_url?.trim() || coverFallback;
   const itinerary = trip.itinerary ?? [];
   const inclusions = trip.inclusions ?? [];
   const exclusions = trip.exclusions ?? [];
@@ -116,28 +115,31 @@ export default function TripDetailPage() {
         type="article"
       />
 
-      {/* Hero */}
-      <section className="relative h-[50vh] min-h-[400px]">
+      {/* Inside banner — 16:9 (1600×900) desktop; shorter crop on phones */}
+      <section className="relative aspect-[4/3] w-full overflow-hidden sm:aspect-[16/10] md:aspect-[16/9]">
         <img
           src={heroImage}
           alt={trip.title}
-          className="h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-cover object-center"
+          sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-8">
-          <div className="container mx-auto px-4">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 md:p-8">
+          <div className="container mx-auto px-2 sm:px-4">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-              <Badge className="mb-3 capitalize">{trip.difficulty}</Badge>
-              <h1 className="text-3xl font-bold text-white md:text-5xl">{trip.title}</h1>
-              <div className="mt-4 flex flex-wrap items-center gap-4 text-white/90">
+              <Badge className="mb-2 capitalize sm:mb-3">{trip.difficulty}</Badge>
+              <h1 className="text-2xl font-bold leading-tight text-white sm:text-3xl md:text-5xl">
+                {trip.title}
+              </h1>
+              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-white/90 sm:mt-4 sm:text-base">
                 <span className="flex items-center gap-1">
-                  <MapPin className="h-4 w-4" /> {trip.location}
+                  <MapPin className="h-4 w-4 shrink-0" /> {trip.location}
                 </span>
                 <span className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" /> {trip.duration_days}D / {trip.duration_nights}N
+                  <Clock className="h-4 w-4 shrink-0" /> {trip.duration_days}D / {trip.duration_nights}N
                 </span>
                 <span className="flex items-center gap-1">
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" /> {trip.rating} ({trip.review_count} reviews)
+                  <Star className="h-4 w-4 shrink-0 fill-yellow-400 text-yellow-400" /> {trip.rating} ({trip.review_count} reviews)
                 </span>
               </div>
             </motion.div>

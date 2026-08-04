@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { AuthLayout } from "@/components/auth/AuthLayout";
@@ -7,23 +7,58 @@ import { SEO } from "@/components/common/SEO";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
+function getHashParams() {
+  return new URLSearchParams(window.location.hash.replace(/^#/, ""));
+}
+
 export default function AuthCallbackPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { refreshProfile } = useAuth();
-  const [status, setStatus] = useState("Completing sign in...");
+  const [status, setStatus] = useState("Completing verification...");
 
   useEffect(() => {
+    let cancelled = false;
+
     const handleCallback = async () => {
       try {
+        const hashParams = getHashParams();
+        const queryType = searchParams.get("type");
+        const hashType = hashParams.get("type");
+        const next = searchParams.get("next");
+        const authType = (queryType || hashType || "").toLowerCase();
+        const isEmailConfirm =
+          next === "login" ||
+          authType === "signup" ||
+          authType === "email" ||
+          authType === "email_change";
+
+        const code = searchParams.get("code");
+        if (code && isSupabaseConfigured) {
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          if (exchangeError) throw exchangeError;
+        }
+
         const { data, error } = await supabase.auth.getSession();
         if (error) throw error;
 
-        if (!data.session) {
-          const hashParams = new URLSearchParams(window.location.hash.substring(1));
-          if (!hashParams.get("access_token")) throw new Error("No session found");
+        if (!data.session && !hashParams.get("access_token") && !code) {
+          throw new Error("No session found");
+        }
+
+        if (cancelled) return;
+
+        // Email verification → live site sign-in page
+        if (isEmailConfirm) {
+          setStatus("Email verified! Redirecting to sign in...");
+          toast.success("Email verified. Please sign in.");
+          await supabase.auth.signOut();
+          navigate("/auth/login", { replace: true });
+          return;
         }
 
         await refreshProfile();
+        if (cancelled) return;
 
         let dest = "/dashboard";
         if (isSupabaseConfigured && data.session?.user) {
@@ -39,18 +74,22 @@ export default function AuthCallbackPage() {
         toast.success("Signed in successfully");
         navigate(dest, { replace: true });
       } catch {
+        if (cancelled) return;
         setStatus("Authentication failed");
-        toast.error("Sign in failed. Please try again.");
-        setTimeout(() => navigate("/auth/login", { replace: true }), 2000);
+        toast.error("Verification failed. Please try signing in.");
+        setTimeout(() => navigate("/auth/login", { replace: true }), 1500);
       }
     };
 
-    handleCallback();
-  }, [navigate, refreshProfile]);
+    void handleCallback();
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate, refreshProfile, searchParams]);
 
   return (
-    <AuthLayout title="Signing In" subtitle={status}>
-      <SEO title="Authenticating" noIndex />
+    <AuthLayout title="Almost there" subtitle={status}>
+      <SEO title="Verifying" noIndex />
       <div className="flex justify-center py-8">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>

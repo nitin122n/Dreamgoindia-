@@ -27,8 +27,16 @@ VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
 VITE_WHATSAPP_NUMBER=919876543210
 VITE_GOOGLE_MAPS_API_KEY=your-google-maps-key
+VITE_SITE_URL=https://www.dreamgoindia.com
 ```
 
+In **Supabase → Authentication → URL Configuration**:
+- **Site URL** = `https://www.dreamgoindia.com`
+- **Redirect URLs** include:
+  - `https://www.dreamgoindia.com/**`
+  - `http://localhost:5173/**` (for local testing)
+
+After email verification, users open [https://www.dreamgoindia.com/auth/login](https://www.dreamgoindia.com/auth/login) to sign in.
 ### 3. Set up Supabase database
 
 Run numbered migrations in order via Supabase Dashboard SQL Editor or CLI:

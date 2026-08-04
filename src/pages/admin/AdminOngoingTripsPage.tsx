@@ -50,6 +50,7 @@ const emptyTrip = (): TripForm => ({
   inclusions: [],
   exclusions: [],
   itinerary_pdf_url: null,
+  banner_image_url: null,
   cover_url: "",
 });
 
@@ -327,13 +328,25 @@ export default function AdminOngoingTripsPage() {
           />
         </FormField>
         <FormField
-          label="Trip page banner image"
-          hint="Shown as the large photo at the top of the trip description page"
+          label="Card / cover image"
+          hint="Shown on trip cards and listings"
         >
           <ImageUploader
             value={form.cover_url}
             onChange={(url) => setForm({ ...form, cover_url: url })}
             folder="trips"
+          />
+        </FormField>
+        <FormField
+          label="Inside banner (trip page)"
+          hint="Large photo at the top of the trip description page. Use 1600×900 (16:9) for best results — scales on phone automatically."
+        >
+          <ImageUploader
+            value={form.banner_image_url ?? ""}
+            onChange={(url) => setForm({ ...form, banner_image_url: url || null })}
+            folder="trips/banners"
+            variant="banner"
+            recommendedSize="1600×900"
           />
         </FormField>
         <FormField label="Location">

@@ -119,6 +119,8 @@ export interface Trip {
   seo_description: string | null;
   /** Detailed itinerary PDF (uploaded in admin) */
   itinerary_pdf_url: string | null;
+  /** Trip detail page inside banner (recommended 1600×900) */
+  banner_image_url: string | null;
   /** Homepage position — lower number shows first (admin-managed) */
   sort_order: number;
   created_at: string;

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 const loginSchema = z.object({
   identifier: z
@@ -28,12 +29,26 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 const fieldClass =
   "h-12 rounded-xl border-gray-200 bg-white text-sm placeholder:text-gray-400 focus:border-primary focus:ring-primary/20";
 
+function isEmailVerificationReturn(): boolean {
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const query = new URLSearchParams(window.location.search);
+  const type = (query.get("type") || hash.get("type") || "").toLowerCase();
+  return (
+    type === "signup" ||
+    type === "email" ||
+    type === "email_change" ||
+    Boolean(query.get("code")) ||
+    Boolean(hash.get("access_token"))
+  );
+}
+
 export default function LoginPage() {
   const { signIn, user, loading, profile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [pendingRedirect, setPendingRedirect] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [fromEmailVerify, setFromEmailVerify] = useState(false);
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname;
 
   const {
@@ -44,9 +59,42 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
+  // Finish email verification when Supabase redirects here with tokens/code
   useEffect(() => {
+    if (!isEmailVerificationReturn()) return;
+
+    let cancelled = false;
+
+    const finishVerification = async () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get("code");
+        if (code && isSupabaseConfigured) {
+          await supabase.auth.exchangeCodeForSession(code);
+        }
+        if (cancelled) return;
+        setFromEmailVerify(true);
+        toast.success("Email verified. Please sign in.");
+        if (isSupabaseConfigured) await supabase.auth.signOut();
+        window.history.replaceState({}, "", "/auth/login");
+      } catch {
+        if (!cancelled) {
+          toast.error("Verification link invalid or expired. Try signing in.");
+          window.history.replaceState({}, "", "/auth/login");
+        }
+      }
+    };
+
+    void finishVerification();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    // Stay on login after email verification until they submit the form
+    if (fromEmailVerify) return;
     if (user && !loading && profile) {
-      // Customer login always goes to customer dashboard (never admin panel)
       const dest = from?.startsWith("/dashboard")
         ? from
         : from && !from.startsWith("/admin")
@@ -54,7 +102,7 @@ export default function LoginPage() {
           : "/dashboard";
       navigate(dest, { replace: true });
     }
-  }, [user, loading, profile, navigate, from]);
+  }, [user, loading, profile, navigate, from, fromEmailVerify]);
 
   useEffect(() => {
     if (pendingRedirect && user && !loading && profile) {
@@ -80,6 +128,7 @@ export default function LoginPage() {
       return;
     }
     toast.success("Welcome back!");
+    setFromEmailVerify(false);
     setPendingRedirect(true);
   };
 
@@ -107,21 +156,26 @@ export default function LoginPage() {
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="password" className="text-sm font-semibold text-gray-900">
-            Password
-          </Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password" className="text-sm font-semibold text-gray-900">
+              Password
+            </Label>
+            <Link to="/auth/forgot-password" className="text-xs font-medium text-primary hover:underline">
+              Forgot Password?
+            </Link>
+          </div>
           <div className="relative">
             <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <Input
               id="password"
               type={showPassword ? "text" : "password"}
               placeholder="Enter your password"
-              className={`${fieldClass} pl-10 pr-11`}
+              className={`${fieldClass} pl-10 pr-10`}
               {...register("password")}
             />
             <button
               type="button"
-              onClick={() => setShowPassword(!showPassword)}
+              onClick={() => setShowPassword((v) => !v)}
               className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
@@ -131,14 +185,6 @@ export default function LoginPage() {
           {errors.password && (
             <p className="text-xs text-red-500">{errors.password.message}</p>
           )}
-          <div className="flex justify-end pt-1">
-            <Link
-              to="/auth/forgot-password"
-              className="text-xs font-semibold text-primary hover:underline"
-            >
-              Forgot Password?
-            </Link>
-          </div>
         </div>
 
         <Button

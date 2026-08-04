@@ -15,9 +15,20 @@ interface ImageUploaderProps {
   onChange: (url: string) => void;
   folder?: string;
   className?: string;
+  /** Preview frame shape — banner = 16:9 (1600×900) */
+  variant?: "default" | "banner";
+  recommendedSize?: string;
 }
 
-export function ImageUploader({ value, onChange, folder = "uploads", className }: ImageUploaderProps) {
+export function ImageUploader({
+  value,
+  onChange,
+  folder = "uploads",
+  className,
+  variant = "default",
+  recommendedSize,
+}: ImageUploaderProps) {
+  const isBanner = variant === "banner";
   const inputRef = useRef<HTMLInputElement>(null);
   const upload = useUploadImage();
   const [dragging, setDragging] = useState(false);
@@ -70,7 +81,8 @@ export function ImageUploader({ value, onChange, folder = "uploads", className }
         }}
         onDrop={onDrop}
         className={cn(
-          "relative h-[220px] w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-50/80 transition-colors",
+          "relative w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-50/80 transition-colors",
+          isBanner ? "aspect-[16/9] min-h-[160px]" : "h-[220px]",
           dragging && "border-primary bg-primary/5",
           upload.isPending && "pointer-events-none"
         )}
@@ -82,12 +94,20 @@ export function ImageUploader({ value, onChange, folder = "uploads", className }
         )}
 
         {value ? (
-          <div className="flex h-full flex-col items-center justify-center gap-4 px-4 py-5">
-            <div className="relative flex h-[160px] w-[160px] shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white">
+          <div className="flex h-full flex-col items-center justify-center gap-3 px-4 py-4">
+            <div
+              className={cn(
+                "relative flex shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-white",
+                isBanner ? "aspect-[16/9] w-full max-w-xl" : "h-[160px] w-[160px]"
+              )}
+            >
               <img
                 src={value}
                 alt="Uploaded preview"
-                className="max-h-[160px] max-w-[160px] object-contain"
+                className={cn(
+                  "object-cover",
+                  isBanner ? "h-full w-full" : "max-h-[160px] max-w-[160px] object-contain"
+                )}
               />
               <button
                 type="button"
@@ -143,6 +163,7 @@ export function ImageUploader({ value, onChange, folder = "uploads", className }
                 </Button>
                 <p className="text-xs text-gray-400">
                   PNG, JPG, JPEG, SVG, WEBP
+                  {recommendedSize ? ` · Recommended ${recommendedSize}` : ""}
                   {!isSupabaseConfigured && " · Local preview in demo mode"}
                 </p>
               </>

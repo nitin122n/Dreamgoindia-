@@ -144,6 +144,7 @@ function baseTrip(
     seo_title: null,
     seo_description: null,
     itinerary_pdf_url: null,
+    banner_image_url: partial.banner_image_url ?? null,
     sort_order: partial.sort_order ?? 0,
     created_at: new Date().toISOString(),
     trip_images: partial.trip_images ?? tripImage(partial.id, partial.id, IMG.trek, partial.title),

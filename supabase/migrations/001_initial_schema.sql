@@ -209,6 +209,7 @@ CREATE TABLE public.trips (
   seo_title TEXT,
   seo_description TEXT,
   itinerary_pdf_url TEXT,
+  banner_image_url TEXT,
   sort_order INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()

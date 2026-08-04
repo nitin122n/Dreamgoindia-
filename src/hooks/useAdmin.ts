@@ -537,6 +537,8 @@ export function useAdminTripMutations() {
     ) => {
       const slug = item.slug?.trim() || slugify(item.title);
       const coverUrl = item.cover_url?.trim() || "";
+      const bannerUrl =
+        typeof item.banner_image_url === "string" ? item.banner_image_url.trim() || null : item.banner_image_url;
 
       if (useMockCms()) {
         const store = getAdminMockStore();
@@ -548,6 +550,8 @@ export function useAdminTripMutations() {
               ...prev,
               ...item,
               slug,
+              banner_image_url:
+                bannerUrl !== undefined ? bannerUrl : prev.banner_image_url ?? null,
               trip_images: coverUrl
                 ? [
                     {
@@ -599,6 +603,7 @@ export function useAdminTripMutations() {
             seo_title: item.seo_title ?? null,
             seo_description: item.seo_description ?? null,
             itinerary_pdf_url: item.itinerary_pdf_url ?? null,
+            banner_image_url: bannerUrl ?? null,
             sort_order: item.sort_order ?? store.trips.length,
             created_at: new Date().toISOString(),
             trip_images: coverUrl
@@ -654,10 +659,12 @@ export function useAdminTripMutations() {
       // Newer columns may be missing on older DBs — try with them, retry without
       if (item.trip_type) payload.trip_type = item.trip_type;
       if (typeof item.sort_order === "number") payload.sort_order = item.sort_order;
-      const optionalColumnsRe = /trip_type|sort_order/i;
+      if (bannerUrl !== undefined) payload.banner_image_url = bannerUrl;
+      const optionalColumnsRe = /trip_type|sort_order|banner_image_url/i;
       const stripOptionalColumns = () => {
         delete payload.trip_type;
         delete payload.sort_order;
+        delete payload.banner_image_url;
       };
 
       let tripId = item.id;
@@ -680,8 +687,7 @@ export function useAdminTripMutations() {
       }
 
       if (coverUrl && tripId) {
-        // Replace all trip images so the description-page banner always updates
-        await supabase.from("trip_images").delete().eq("trip_id", tripId);
+        await supabase.from("trip_images").delete().eq("trip_id", tripId).eq("is_cover", true);
         const { error: imgError } = await supabase.from("trip_images").insert({
           trip_id: tripId,
           image_url: coverUrl,
