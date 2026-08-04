@@ -36,7 +36,9 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 const fieldClass =
-  "h-11 rounded-xl border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:ring-primary/20";
+  "h-11 rounded-xl border-gray-200 bg-white text-sm text-gray-900 caret-gray-900 placeholder:text-gray-400 focus:border-primary focus:ring-primary/20 dark:border-gray-200 dark:bg-white dark:text-gray-900 dark:caret-gray-900 dark:placeholder:text-gray-400";
+
+const labelClass = "text-sm font-semibold text-primary dark:text-primary";
 
 function alreadyShownThisSession(): boolean {
   try {
@@ -127,15 +129,16 @@ export function LoginPopup() {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5">
           <div className="space-y-1.5">
-            <Label htmlFor="popup-identifier" className="text-sm font-semibold text-gray-900">
+            <Label htmlFor="popup-identifier" className={labelClass}>
               Email or Phone
             </Label>
             <div className="relative">
-              <User className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <User className="pointer-events-none absolute left-3.5 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <Input
                 id="popup-identifier"
                 placeholder="Enter your email or phone"
                 className={`${fieldClass} pl-10`}
+                autoComplete="username"
                 {...register("identifier")}
               />
             </div>
@@ -145,23 +148,25 @@ export function LoginPopup() {
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="popup-password" className="text-sm font-semibold text-gray-900">
+            <Label htmlFor="popup-password" className={labelClass}>
               Password
             </Label>
             <div className="relative">
-              <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Lock className="pointer-events-none absolute left-3.5 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <Input
                 id="popup-password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 className={`${fieldClass} pl-10 pr-11`}
+                autoComplete="current-password"
                 {...register("password")}
               />
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded p-1 text-primary hover:bg-primary/10"
                 aria-label={showPassword ? "Hide password" : "Show password"}
+                title={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>

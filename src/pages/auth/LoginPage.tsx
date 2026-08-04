@@ -27,7 +27,9 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 const fieldClass =
-  "h-12 rounded-xl border-gray-200 bg-white text-sm placeholder:text-gray-400 focus:border-primary focus:ring-primary/20";
+  "h-12 rounded-xl border-gray-200 bg-white text-sm text-gray-900 caret-gray-900 placeholder:text-gray-400 focus:border-primary focus:ring-primary/20 dark:border-gray-200 dark:bg-white dark:text-gray-900 dark:caret-gray-900 dark:placeholder:text-gray-400";
+
+const labelClass = "text-sm font-medium text-primary dark:text-primary";
 
 export default function LoginPage() {
   const { signIn, user, loading, profile } = useAuth();
@@ -89,11 +91,11 @@ export default function LoginPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="identifier" className="text-sm font-medium text-gray-700">
+          <Label htmlFor="identifier" className={labelClass}>
             Email or Phone
           </Label>
           <div className="relative">
-            <User className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <User className="pointer-events-none absolute left-3.5 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <Input
               id="identifier"
               placeholder="you@email.com or phone"
@@ -109,7 +111,7 @@ export default function LoginPage() {
 
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+            <Label htmlFor="password" className={labelClass}>
               Password
             </Label>
             <Link to="/auth/forgot-password" className="text-xs font-medium text-primary hover:underline">
@@ -117,7 +119,7 @@ export default function LoginPage() {
             </Link>
           </div>
           <div className="relative">
-            <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Lock className="pointer-events-none absolute left-3.5 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <Input
               id="password"
               type={showPassword ? "text" : "password"}
@@ -128,9 +130,10 @@ export default function LoginPage() {
             />
             <button
               type="button"
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded p-1 text-primary hover:bg-primary/10"
               onClick={() => setShowPassword((v) => !v)}
               aria-label={showPassword ? "Hide password" : "Show password"}
+              title={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
