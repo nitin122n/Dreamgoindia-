@@ -1,34 +1,35 @@
-/** Live production site — used for auth email redirects. */
+/** Live production site — auth emails always use this (never localhost). */
 export const PRODUCTION_SITE_URL = "https://www.dreamgoindia.com";
 
-/** Canonical public site origin for auth emails and redirects. */
-export function getSiteUrl(): string {
+function isLocalHost(url: string): boolean {
+  return /localhost|127\.0\.0\.1/i.test(url);
+}
+
+/**
+ * Origin for auth email links (verify / reset).
+ * Always prefers the live site so mobile users are never sent to localhost.
+ */
+export function getAuthEmailOrigin(): string {
   const fromEnv = (import.meta.env.VITE_SITE_URL as string | undefined)
     ?.trim()
     .replace(/\/$/, "");
-  if (fromEnv) return fromEnv;
 
-  if (typeof window !== "undefined" && window.location?.origin) {
-    const origin = window.location.origin;
-    // Local/dev: keep localhost so email testing still works on this machine
-    if (/localhost|127\.0\.0\.1/i.test(origin)) return origin;
-    return origin;
-  }
-
+  if (fromEnv && !isLocalHost(fromEnv)) return fromEnv;
   return PRODUCTION_SITE_URL;
 }
 
+/** @deprecated use getAuthEmailOrigin — kept for any non-email callers */
+export function getSiteUrl(): string {
+  return getAuthEmailOrigin();
+}
+
 export function getAuthRedirectUrl(path: string): string {
-  const base = getSiteUrl().replace(/\/$/, "");
+  const base = getAuthEmailOrigin();
   const suffix = path.startsWith("/") ? path : `/${path}`;
   return `${base}${suffix}`;
 }
 
-/** Always the live login page — used after email verification. */
+/** Email verification always opens the live sign-in page. */
 export function getEmailVerificationRedirectUrl(): string {
-  const fromEnv = (import.meta.env.VITE_SITE_URL as string | undefined)
-    ?.trim()
-    .replace(/\/$/, "");
-  const base = fromEnv || PRODUCTION_SITE_URL;
-  return `${base}/auth/login`;
+  return `${PRODUCTION_SITE_URL}/auth/login`;
 }
