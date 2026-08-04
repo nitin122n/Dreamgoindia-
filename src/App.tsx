@@ -39,7 +39,6 @@ import SignupPage from "@/pages/auth/SignupPage";
 import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "@/pages/auth/ResetPasswordPage";
 import AuthCallbackPage from "@/pages/auth/AuthCallbackPage";
-import VerifyEmailPage from "@/pages/auth/VerifyEmailPage";
 
 // Dashboard pages
 import DashboardHome from "@/pages/dashboard/DashboardHome";
@@ -120,7 +119,6 @@ export default function App() {
                   <Route path="auth/forgot-password" element={<ForgotPasswordPage />} />
                   <Route path="auth/reset-password" element={<ResetPasswordPage />} />
                   <Route path="auth/callback" element={<AuthCallbackPage />} />
-                  <Route path="auth/verify-email" element={<VerifyEmailPage />} />
 
                   {/* Customer dashboard */}
                   <Route

@@ -1,7 +1,7 @@
 import type { AuthError, Session, User } from "@supabase/supabase-js";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import type { Profile } from "@/types";
-import { getPasswordResetRedirectUrl, getEmailVerificationRedirectUrl } from "@/lib/site-url";
+import { getPasswordResetRedirectUrl } from "@/lib/site-url";
 
 export const SUPABASE_NOT_CONFIGURED_MESSAGE =
   "Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (or VITE_SUPABASE_PUBLISHABLE_KEY) in your .env file.";
@@ -58,7 +58,6 @@ export async function signUpWithEmail(
     email,
     password,
     options: {
-      emailRedirectTo: getEmailVerificationRedirectUrl(),
       data: {
         full_name: fullName ?? "",
         ...(phone?.trim() ? { phone: phone.trim() } : {}),
@@ -68,6 +67,17 @@ export async function signUpWithEmail(
 
   if (error) {
     throw toAuthServiceError(error);
+  }
+
+  if (data.user && !data.session && (data.user.identities?.length ?? 0) === 0) {
+    throw new AuthServiceError(
+      "This email is already registered. Try signing in or use Forgot Password.",
+      "user_already_registered",
+    );
+  }
+
+  if (!data.session) {
+    return signInWithEmail(email, password);
   }
 
   return { user: data.user, session: data.session };

@@ -34,14 +34,14 @@ In **Supabase → Authentication → URL Configuration**:
 - **Site URL** = `https://www.dreamgoindia.com`
 - **Redirect URLs** include:
   - `https://www.dreamgoindia.com/**`
-  - `https://www.dreamgoindia.com/auth/login`
   - `https://www.dreamgoindia.com/auth/reset-password`
   - `http://localhost:5173/**` (for local testing)
 
-After email verification, users open [https://www.dreamgoindia.com/auth/login](https://www.dreamgoindia.com/auth/login) to sign in.
-Password reset links open [https://www.dreamgoindia.com/auth/reset-password](https://www.dreamgoindia.com/auth/reset-password).
+In **Supabase → Authentication → Providers → Email**:
+- Turn **Confirm email** **OFF** so users can sign up and sign in with email + password immediately (no verification email).
 
-Supabase’s built-in email has a low send rate limit. If you see **email rate limit exceeded**, wait ~1 hour or set **Custom SMTP** under Authentication → Emails.
+Password reset links open [https://www.dreamgoindia.com/auth/reset-password](https://www.dreamgoindia.com/auth/reset-password). Custom SMTP is optional (only needed for forgot-password emails).
+
 
 ### 3. Set up Supabase database
 
@@ -96,10 +96,8 @@ Visit `http://localhost:5173`
 - Contact form, FAQ, About, Services
 
 ### Authentication
-- Email/password login & signup
-- Google OAuth
+- Email/password login & signup (no email verification)
 - Forgot/reset password
-- Email verification
 - Role-based redirects (Admin → `/admin`, Customer → `/dashboard`)
 
 ### Customer Dashboard

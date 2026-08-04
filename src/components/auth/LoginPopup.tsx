@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/common/Logo";
 import { useAuth } from "@/contexts/AuthContext";
+import { friendlyAuthError } from "@/lib/auth-errors";
 
 const DELAY_MS = 15_000;
 const STORAGE_KEY = "dream-go-login-popup-done";
@@ -98,7 +99,7 @@ export function LoginPopup() {
 
     const { error } = await signIn(data.identifier, data.password);
     if (error) {
-      toast.error(error.message || "Invalid credentials");
+      toast.error(friendlyAuthError(error.message, "Invalid credentials"));
       return;
     }
 

@@ -6,7 +6,7 @@ function isLocalHost(url: string): boolean {
 }
 
 /**
- * Origin for auth email links (verify / reset).
+ * Origin for auth email links (password reset).
  * Always prefers the live site so mobile users are never sent to localhost.
  */
 export function getAuthEmailOrigin(): string {
@@ -27,11 +27,6 @@ export function getAuthRedirectUrl(path: string): string {
   const base = getAuthEmailOrigin();
   const suffix = path.startsWith("/") ? path : `/${path}`;
   return `${base}${suffix}`;
-}
-
-/** Email verification always opens the live sign-in page. */
-export function getEmailVerificationRedirectUrl(): string {
-  return `${PRODUCTION_SITE_URL}/auth/login`;
 }
 
 /** Password-reset emails always open the live reset page. */

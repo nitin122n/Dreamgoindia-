@@ -15,7 +15,7 @@ export default function AuthCallbackPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { refreshProfile } = useAuth();
-  const [status, setStatus] = useState("Completing verification...");
+  const [status, setStatus] = useState("Completing sign-in...");
 
   useEffect(() => {
     let cancelled = false;
@@ -23,15 +23,7 @@ export default function AuthCallbackPage() {
     const handleCallback = async () => {
       try {
         const hashParams = getHashParams();
-        const queryType = searchParams.get("type");
-        const hashType = hashParams.get("type");
-        const next = searchParams.get("next");
-        const authType = (queryType || hashType || "").toLowerCase();
-        const isEmailConfirm =
-          next === "login" ||
-          authType === "signup" ||
-          authType === "email" ||
-          authType === "email_change";
+        const authType = (searchParams.get("type") || hashParams.get("type") || "").toLowerCase();
 
         const code = searchParams.get("code");
         if (code && isSupabaseConfigured) {
@@ -47,15 +39,6 @@ export default function AuthCallbackPage() {
         }
 
         if (cancelled) return;
-
-        // Email verification → live site sign-in page
-        if (isEmailConfirm) {
-          setStatus("Email verified! Redirecting to sign in...");
-          toast.success("Email verified. Please sign in.");
-          await supabase.auth.signOut();
-          navigate("/auth/login", { replace: true });
-          return;
-        }
 
         // Password recovery → set new password
         if (authType === "recovery") {
@@ -83,7 +66,7 @@ export default function AuthCallbackPage() {
       } catch {
         if (cancelled) return;
         setStatus("Authentication failed");
-        toast.error("Verification failed. Please try signing in.");
+        toast.error("Sign-in failed. Please try again.");
         setTimeout(() => navigate("/auth/login", { replace: true }), 1500);
       }
     };
@@ -96,7 +79,7 @@ export default function AuthCallbackPage() {
 
   return (
     <AuthLayout title="Almost there" subtitle={status}>
-      <SEO title="Verifying" noIndex />
+      <SEO title="Signing in" noIndex />
       <div className="flex justify-center py-8">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>

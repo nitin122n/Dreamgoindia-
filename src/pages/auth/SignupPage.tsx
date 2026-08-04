@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
+import { friendlyAuthError } from "@/lib/auth-errors";
 import { signupSchema, type SignupFormValues } from "@/lib/validations/auth";
 
 export default function SignupPage() {
@@ -26,11 +27,11 @@ export default function SignupPage() {
   const onSubmit = async (data: SignupFormValues) => {
     const { error } = await signUp(data.email, data.password, data.fullName, data.phone);
     if (error) {
-      toast.error(error.message || "Signup failed");
+      toast.error(friendlyAuthError(error.message, "Signup failed. Please try again."));
       return;
     }
-    toast.success("Account created! Please verify your email.");
-    navigate("/auth/verify-email", { state: { email: data.email } });
+    toast.success("Account created! Welcome aboard.");
+    navigate("/dashboard", { replace: true });
   };
 
   return (

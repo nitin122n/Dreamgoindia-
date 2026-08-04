@@ -8,7 +8,7 @@ import {
   ADMIN_PANEL_SESSION_KEY,
   isAdminPanelCredentials,
 } from "@/lib/admin-panel-auth";
-import { getEmailVerificationRedirectUrl, getPasswordResetRedirectUrl } from "@/lib/site-url";
+import { getPasswordResetRedirectUrl } from "@/lib/site-url";
 
 interface AuthContextType {
   user: User | null;
@@ -205,18 +205,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, fullName: string, phone: string) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: getEmailVerificationRedirectUrl(),
         data: {
           full_name: fullName,
           phone: phone.trim(),
         },
       },
     });
-    return { error: error as Error | null };
+    if (error) return { error: error as Error };
+
+    // Supabase returns an empty identities list when the email is already registered
+    // and confirmation is still enabled (no real new user / session).
+    if (data.user && !data.session && (data.user.identities?.length ?? 0) === 0) {
+      return {
+        error: new Error(
+          "This email is already registered. Try signing in or use Forgot Password."
+        ),
+      };
+    }
+
+    let session = data.session;
+    let authUser = data.user;
+
+    // Confirm email OFF → session is returned. If still missing, sign in with password.
+    if (!session) {
+      const { data: signedIn, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (signInError) return { error: signInError as Error };
+      session = signedIn.session;
+      authUser = signedIn.user;
+    }
+
+    if (session && authUser) {
+      setSession(session);
+      setUser(authUser);
+      await fetchProfile(authUser.id);
+    }
+
+    return { error: null };
   };
 
   const signOut = async () => {

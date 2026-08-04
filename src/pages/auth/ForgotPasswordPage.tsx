@@ -10,18 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
+import { friendlyAuthError } from "@/lib/auth-errors";
 import { forgotPasswordSchema, type ForgotPasswordFormValues } from "@/lib/validations/auth";
-
-function friendlyResetError(message: string): string {
-  const msg = message.toLowerCase();
-  if (msg.includes("rate limit") || msg.includes("over_email_send_rate_limit")) {
-    return "Too many reset emails were sent. Please wait about 1 hour, then try again.";
-  }
-  if (msg.includes("redirect")) {
-    return "Reset link setup is incomplete. Contact support or try again later.";
-  }
-  return message || "Failed to send reset email";
-}
 
 export default function ForgotPasswordPage() {
   const { resetPassword } = useAuth();
@@ -40,9 +30,8 @@ export default function ForgotPasswordPage() {
   const onSubmit = async (data: ForgotPasswordFormValues) => {
     const { error } = await resetPassword(data.email);
     if (error) {
-      const friendly = friendlyResetError(error.message);
-      toast.error(friendly);
-      if (/rate limit/i.test(error.message)) setRateLimited(true);
+      toast.error(friendlyAuthError(error.message, "Failed to send reset email"));
+      if (/rate limit/i.test(error.message || "")) setRateLimited(true);
       return;
     }
     setRateLimited(false);
