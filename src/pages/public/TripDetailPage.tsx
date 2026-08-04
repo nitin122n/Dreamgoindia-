@@ -115,8 +115,8 @@ export default function TripDetailPage() {
         type="article"
       />
 
-      {/* Inside banner — 16:9 (1600×900) desktop; shorter crop on phones */}
-      <section className="relative aspect-[4/3] w-full overflow-hidden sm:aspect-[16/10] md:aspect-[16/9]">
+      {/* Inside banner — 1600×600 (8:3) desktop; taller crop on phones */}
+      <section className="relative aspect-[3/2] w-full overflow-hidden sm:aspect-[2/1] md:aspect-[8/3]">
         <img
           src={heroImage}
           alt={trip.title}

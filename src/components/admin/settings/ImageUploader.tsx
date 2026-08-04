@@ -15,7 +15,7 @@ interface ImageUploaderProps {
   onChange: (url: string) => void;
   folder?: string;
   className?: string;
-  /** Preview frame shape — banner = 16:9 (1600×900) */
+  /** Preview frame shape — banner = 8:3 (1600×600) */
   variant?: "default" | "banner";
   recommendedSize?: string;
 }
@@ -82,7 +82,7 @@ export function ImageUploader({
         onDrop={onDrop}
         className={cn(
           "relative w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-50/80 transition-colors",
-          isBanner ? "aspect-[16/9] min-h-[160px]" : "h-[220px]",
+          isBanner ? "aspect-[8/3] min-h-[140px]" : "h-[220px]",
           dragging && "border-primary bg-primary/5",
           upload.isPending && "pointer-events-none"
         )}
@@ -98,7 +98,7 @@ export function ImageUploader({
             <div
               className={cn(
                 "relative flex shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-white",
-                isBanner ? "aspect-[16/9] w-full max-w-xl" : "h-[160px] w-[160px]"
+                isBanner ? "aspect-[8/3] w-full max-w-xl" : "h-[160px] w-[160px]"
               )}
             >
               <img

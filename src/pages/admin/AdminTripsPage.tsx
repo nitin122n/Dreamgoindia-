@@ -315,14 +315,14 @@ export default function AdminTripsPage() {
 
         <FormField
           label="Inside banner (trip page)"
-          hint="Large photo at the top of the trip description page. Use 1600×900 (16:9) for best results — scales on phone automatically."
+          hint="Large photo at the top of the trip description page. Use 1600×600 (8:3) for best results — scales on phone automatically."
         >
           <ImageUploader
             value={form.banner_image_url ?? ""}
             onChange={(url) => setForm({ ...form, banner_image_url: url || null })}
             folder="trips/banners"
             variant="banner"
-            recommendedSize="1600×900"
+            recommendedSize="1600×600"
           />
         </FormField>
 
